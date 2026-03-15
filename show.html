@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LPDP-RiR Intelligent Medical Platform</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
+
+      body {
+        background: #f0f7ff;
+        color: #2c3e50;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .navbar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 20px 40px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      }
+
+      .nav-btn {
+        margin-left: 18px;
+        padding: 10px 22px;
+        background-color: #2980b9;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+      }
+
+      .nav-btn:hover {
+        background-color: #1f6391;
+        transform: translateY(-1px);
+      }
+
+      .logo-link {
+        display: flex;
+        align-items: center;
+        margin-right: auto;
+        text-decoration: none;
+      }
+
+      .logo {
+        height: 32px;
+        width: auto;
+        display: block;
+      }
+
+      .logo-text {
+        margin-left: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #2c3e50;
+        letter-spacing: 0.2px;
+        white-space: nowrap;
+      }
+
+      .cta-group {
+        display: flex;
+        gap: 16px;
+        margin-top: 24px;
+      }
+
+      .cta-btn {
+        padding: 12px 24px;
+        background-color: #2980b9;
+        color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+
+      .cta-btn:hover {
+        background-color: #1f6391;
+        transform: translateY(-1px);
+      }
+
+      .cta-btn.secondary {
+        background-color: #ffffff;
+        color: #2980b9;
+        border: 1px solid #2980b9;
+      }
+
+      .section {
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 18px 20px;
+      }
+
+      .section-header {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 14px;
+        text-align: left;
+      }
+
+      .section-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: #2c3e50;
+        letter-spacing: 0.2px;
+      }
+
+      .section-subtitle {
+        font-size: 14px;
+        color: #5a6b7a;
+        line-height: 1.7;
+        max-width: 860px;
+      }
+
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+      }
+
+      .metric-card {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        padding: 18px;
+        text-align: left;
+      }
+
+      .metric-value {
+        font-size: 28px;
+        font-weight: 900;
+        color: #2980b9;
+        line-height: 1.1;
+        margin-bottom: 8px;
+      }
+
+      .metric-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 6px;
+      }
+
+      .metric-note {
+        font-size: 13px;
+        color: #34495e;
+        line-height: 1.7;
+      }
+
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      }
+
+      .table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        background-color: #ffffff;
+      }
+
+      .table-wrap .data-table {
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(44, 62, 80, 0.08);
+        text-align: left;
+        vertical-align: top;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .data-table th {
+        background-color: rgba(240, 247, 255, 0.9);
+        color: #2c3e50;
+        font-weight: 800;
+      }
+
+      .data-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .arch-diagram {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+      }
+
+      .arch-step {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        padding: 18px;
+        text-align: left;
+      }
+
+      .arch-step-title {
+        font-size: 14px;
+        font-weight: 900;
+        color: #2c3e50;
+        margin-bottom: 6px;
+      }
+
+      .arch-step-desc {
+        font-size: 13px;
+        color: #34495e;
+        line-height: 1.7;
+      }
+
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 18px;
+      }
+
+      .advantages {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 18px;
+      }
+
+      .adv-card {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        padding: 20px;
+        text-align: left;
+      }
+
+      .adv-card.accent {
+        border: 1px solid rgba(41, 128, 185, 0.22);
+      }
+
+      .adv-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: #2c3e50;
+        margin-bottom: 10px;
+      }
+
+      .adv-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 10px;
+      }
+
+      .adv-list li {
+        position: relative;
+        padding-left: 18px;
+        font-size: 14px;
+        color: #34495e;
+        line-height: 1.7;
+      }
+
+      .adv-list li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.65em;
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background-color: #2980b9;
+        transform: translateY(-50%);
+      }
+
+      .feature-card {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        padding: 20px;
+        text-align: left;
+      }
+
+      .feature-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 8px;
+      }
+
+      .feature-desc {
+        font-size: 14px;
+        color: #34495e;
+        line-height: 1.7;
+      }
+
+      .footer {
+        text-align: center;
+        padding: 20px 40px;
+        color: #7f8c8d;
+      }
+
+      .hero-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 26px 20px 34px;
+        transform: translateY(-18px);
+      }
+
+      .main-title {
+        font-size: 48px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 24px;
+        line-height: 1.25;
+      }
+
+      .sub-title {
+        font-size: 36px;
+        color: #34495e;
+        max-width: 950px;
+        line-height: 1.7;
+      }
+
+      .sub-title strong {
+        color: #2980b9;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="javascript:void(0)" class="logo-link">
+        <img
+          src="./application/logo/logo.png"
+          alt="LPDP-RiR Logo"
+          class="logo"
+        />
+        <span class="logo-text">LPDP-RiR Intelligent Medical Platform</span>
+      </a>
+      <a href="javascript:void(0)" class="nav-btn">Home</a>
+      <a href="javascript:void(0)" class="nav-btn">Introduction</a>
+      <a href="javascript:void(0)" class="nav-btn">Model-Usage</a>
+      <a href="javascript:void(0)" class="nav-btn">History</a>
+      <a href="javascript:void(0)" class="nav-btn">Advanced-Functions</a>
+      <a href="javascript:void(0)" class="nav-btn">Account</a>
+      <a href="javascript:void(0)" class="nav-btn">Get-Help</a>
+    </nav>
+
+    <section class="hero-area">
+      <h1 class="main-title">
+        Welcome to LPDP-RiR Intelligent Medical Platform
+      </h1>
+      <p class="sub-title">
+        An industry-leading platform for <strong>image processing</strong>,
+        <strong>analysis</strong>, and <strong>auxiliary diagnosis</strong> and
+        <strong>treatment</strong>, tailored for <strong>edge devices</strong>
+      </p>
+      <div class="cta-group">
+        <a href="javascript:void(0)" class="cta-btn">Quick Start</a>
+        <a href="javascript:void(0)" class="cta-btn secondary">Request Trial</a>
+        <a href="javascript:void(0)" class="cta-btn secondary"
+          >Download Preview Version</a
+        >
+        <a href="javascript:void(0)" class="cta-btn secondary">Paper Link</a>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <div class="section-title">Key Metrics</div>
+        <div class="section-subtitle">
+          Benchmarks derived from multi-center validation, deployment tests, and
+          workflow comparisons.
+        </div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-value">0.9792</div>
+          <div class="metric-label">
+            Dice Similarity (Lung Nodule Segmentation)
+          </div>
+          <div class="metric-note">
+            With INT8 quantization + 20% frequency-domain pruning.
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">1.65mm</div>
+          <div class="metric-label">HD95</div>
+          <div class="metric-note">
+            95% Hausdorff distance on core segmentation benchmarks.
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">0.04s</div>
+          <div class="metric-label">Single-Case End-to-End Time</div>
+          <div class="metric-note">
+            Workflow comparison metric for chest CT processing.
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">12</div>
+          <div class="metric-label">PACS Vendor Integrations</div>
+          <div class="metric-note">
+            DICOM core services + HL7 v2 / HL7 FHIR support.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <div class="section-title">Workflow Efficiency</div>
+        <div class="section-subtitle">
+          A compact view of operational impact across clinical tasks.
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Manual</th>
+              <th>Typical AI</th>
+              <th>LPDP-RiR</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Chest CT end-to-end processing time (single case)</td>
+              <td>180–300s</td>
+              <td>15–30s</td>
+              <td>0.04s</td>
+            </tr>
+            <tr>
+              <td>100-case batch processing total time</td>
+              <td>50h</td>
+              <td>50min</td>
+              <td>&lt;5s</td>
+            </tr>
+            <tr>
+              <td>Primary-care lung disease misdiagnosis rate</td>
+              <td>20%–30%</td>
+              <td>8%–12%</td>
+              <td>&lt;5%</td>
+            </tr>
+            <tr>
+              <td>Surgical path planning time (single case)</td>
+              <td>30–60min</td>
+              <td>5–10min</td>
+              <td>&lt;10s</td>
+            </tr>
+            <tr>
+              <td>AR intraoperative navigation static positioning error</td>
+              <td>-</td>
+              <td>3–5mm</td>
+              <td>&lt;1mm</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <div class="section-title">Advantages</div>
+        <div class="section-subtitle">
+          Robust generalization, low hardware requirements, and rapid hospital
+          integration.
+        </div>
+      </div>
+      <div class="advantages">
+        <div class="adv-card">
+          <div class="adv-title">Why LPDP-RiR</div>
+          <ul class="adv-list">
+            <li>
+              Multi-center generalization with &lt;1.2% Dice relative drop.
+            </li>
+            <li>
+              Stable inference over 1000 consecutive cases (±0.2% variation).
+            </li>
+            <li>
+              Full ARM/x86 support, including lightweight Raspberry Pi
+              scenarios.
+            </li>
+          </ul>
+        </div>
+        <div class="adv-card accent">
+          <div class="adv-title">Advanced by Design</div>
+          <ul class="adv-list">
+            <li>
+              Full DICOM core services and HL7 FHIR support for modern hospital
+              workflows.
+            </li>
+            <li>
+              Fast integration: 3–7 days per hospital (SDK / DICOM proxy, zero
+              core-interface refactor).
+            </li>
+            <li>
+              Security-forward deployment with AES-256 and SM-grade encryption
+              options.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <div class="section-title">Core Capabilities</div>
+        <div class="section-subtitle">
+          A platform view of the most visible capabilities on the cover page.
+        </div>
+      </div>
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-title">Edge Inference</div>
+          <div class="feature-desc">
+            Real-time image analysis and assisted diagnosis on edge devices.
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">Integrated Workflow</div>
+          <div class="feature-desc">
+            Unified image processing, analysis, annotation, and result export.
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">Security & Compliance</div>
+          <div class="feature-desc">
+            Privacy protection, access control, and secure data transfer.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">© LPDP-RiR Intelligent Medical Platform</footer>
+  </body>
+</html>

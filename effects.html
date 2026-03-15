@@ -1,0 +1,3139 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LPDP-RiR Effects Demo</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --card: rgba(255, 255, 255, 0.06);
+        --card2: rgba(255, 255, 255, 0.08);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.65);
+        --border: rgba(255, 255, 255, 0.12);
+        --accent: #67d1ff;
+        --accent2: #9b7bff;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Helvetica,
+          Arial,
+          "Apple Color Emoji",
+          "Segoe UI Emoji";
+        background:
+          radial-gradient(
+            1200px 600px at 20% -10%,
+            rgba(103, 209, 255, 0.18),
+            transparent 60%
+          ),
+          radial-gradient(
+            1000px 600px at 90% 10%,
+            rgba(155, 123, 255, 0.16),
+            transparent 55%
+          ),
+          radial-gradient(
+            900px 700px at 50% 120%,
+            rgba(80, 255, 196, 0.1),
+            transparent 60%
+          ),
+          var(--bg);
+        color: var(--text);
+      }
+      a {
+        color: inherit;
+      }
+      .wrap {
+        max-width: 1220px;
+        margin: 0 auto;
+        padding: 26px 18px 60px;
+      }
+      .top {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+      .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .brand h1 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: 0.2px;
+      }
+      .brand p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      .controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .field {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 12px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(8px);
+      }
+      .field input {
+        width: 260px;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--text);
+        font-size: 13px;
+      }
+      .field select {
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--text);
+        font-size: 13px;
+        appearance: none;
+        padding-right: 18px;
+      }
+      .field select option {
+        background: #0c1426;
+        color: var(--text);
+      }
+      .field .caret {
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 6px solid rgba(255, 255, 255, 0.6);
+        margin-left: -6px;
+        pointer-events: none;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(8px);
+        font-size: 13px;
+        color: var(--text);
+        user-select: none;
+      }
+      .pill input {
+        accent-color: var(--accent);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 14px;
+      }
+      @media (max-width: 1060px) {
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 680px) {
+        .grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .field input {
+          width: 170px;
+        }
+      }
+      .card {
+        position: relative;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.06),
+          rgba(255, 255, 255, 0.03)
+        );
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        min-height: 250px;
+        backdrop-filter: blur(10px);
+      }
+      .cat {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 12px 6px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.18);
+        backdrop-filter: blur(10px);
+      }
+      .cat h2 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+      }
+      .cat p {
+        margin: 0;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.4;
+        text-align: right;
+      }
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 14px 14px 10px;
+      }
+      .name {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 0;
+      }
+      .name strong {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .name span {
+        font-size: 12px;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .badge {
+        font-size: 11px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(0, 0, 0, 0.18);
+        color: rgba(255, 255, 255, 0.78);
+        flex: 0 0 auto;
+      }
+      .stage {
+        position: relative;
+        height: 178px;
+        margin: 0 14px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.18);
+      }
+      .stage canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .stage .center {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+        text-align: center;
+        padding: 14px;
+      }
+      .stage .center .hint {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.74);
+        line-height: 1.45;
+      }
+      .stage .center .big {
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: 0.6px;
+      }
+      .stage .center .muted {
+        margin-top: 4px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.62);
+      }
+      .hidden {
+        display: none !important;
+      }
+      .only-css::before,
+      .only-css::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .fx-noise::before {
+        opacity: 0.18;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E");
+        background-size: 180px 180px;
+      }
+      .fx-grainient::before {
+        opacity: 0.35;
+        background:
+          radial-gradient(
+            400px 220px at 10% 10%,
+            rgba(103, 209, 255, 0.35),
+            transparent 60%
+          ),
+          radial-gradient(
+            360px 240px at 80% 20%,
+            rgba(155, 123, 255, 0.32),
+            transparent 55%
+          ),
+          radial-gradient(
+            380px 260px at 40% 120%,
+            rgba(80, 255, 196, 0.22),
+            transparent 60%
+          );
+        filter: saturate(1.1);
+      }
+      .fx-grainient::after {
+        opacity: 0.18;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E");
+        background-size: 160px 160px;
+      }
+      .fx-gradient-blinds::before {
+        opacity: 0.8;
+        background: repeating-linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.08) 0px,
+          rgba(255, 255, 255, 0.08) 10px,
+          rgba(103, 209, 255, 0.18) 10px,
+          rgba(103, 209, 255, 0.18) 22px
+        );
+        transform: translateX(-20%);
+        animation: blinds 3.8s linear infinite;
+      }
+      @keyframes blinds {
+        0% {
+          transform: translateX(-18%);
+        }
+        100% {
+          transform: translateX(18%);
+        }
+      }
+      .fx-iridescence::before {
+        opacity: 0.85;
+        background:
+          radial-gradient(
+            260px 160px at 20% 35%,
+            rgba(103, 209, 255, 0.34),
+            transparent 60%
+          ),
+          radial-gradient(
+            280px 180px at 80% 35%,
+            rgba(155, 123, 255, 0.3),
+            transparent 62%
+          ),
+          radial-gradient(
+            240px 180px at 50% 110%,
+            rgba(255, 84, 200, 0.22),
+            transparent 65%
+          );
+        filter: saturate(1.5);
+        animation: hue 8s linear infinite;
+      }
+      @keyframes hue {
+        0% {
+          filter: hue-rotate(0deg) saturate(1.35);
+        }
+        100% {
+          filter: hue-rotate(360deg) saturate(1.35);
+        }
+      }
+      .fx-grid-motion::before {
+        opacity: 0.55;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.11) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.11) 1px, transparent 1px);
+        background-size: 26px 26px;
+        transform: translate3d(0, 0, 0);
+        animation: gridMove 4.8s linear infinite;
+      }
+      @keyframes gridMove {
+        0% {
+          background-position:
+            0px 0px,
+            0px 0px;
+        }
+        100% {
+          background-position:
+            0px 52px,
+            52px 0px;
+        }
+      }
+      .fx-grid-scan::before {
+        opacity: 0.5;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+        background-size: 28px 28px;
+      }
+      .fx-grid-scan::after {
+        opacity: 0.85;
+        background: linear-gradient(
+          180deg,
+          transparent,
+          rgba(103, 209, 255, 0.45),
+          transparent
+        );
+        height: 40%;
+        top: -40%;
+        bottom: auto;
+        animation: scan 2.4s ease-in-out infinite;
+        filter: blur(0.4px);
+      }
+      @keyframes scan {
+        0% {
+          transform: translateY(-20%);
+        }
+        50% {
+          transform: translateY(190%);
+        }
+        100% {
+          transform: translateY(220%);
+        }
+      }
+      .fx-grid-distortion::before {
+        opacity: 0.55;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+        background-size: 26px 26px;
+        animation: warp 3.8s ease-in-out infinite;
+        filter: blur(0.2px);
+      }
+      @keyframes warp {
+        0% {
+          transform: perspective(500px) rotateX(0deg) rotateY(0deg) scale(1);
+        }
+        50% {
+          transform: perspective(500px) rotateX(10deg) rotateY(-10deg)
+            scale(1.04);
+        }
+        100% {
+          transform: perspective(500px) rotateX(0deg) rotateY(0deg) scale(1);
+        }
+      }
+      .fx-light-rays::before {
+        opacity: 0.85;
+        background: conic-gradient(
+          from 180deg at 50% 0%,
+          rgba(103, 209, 255, 0),
+          rgba(103, 209, 255, 0.18),
+          rgba(155, 123, 255, 0),
+          rgba(155, 123, 255, 0.16),
+          rgba(103, 209, 255, 0)
+        );
+        filter: blur(0.2px);
+        animation: rays 6s linear infinite;
+        transform-origin: 50% 0%;
+      }
+      @keyframes rays {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .fx-light-pillar::before {
+        opacity: 0.95;
+        background:
+          radial-gradient(
+            80px 220px at 50% 40%,
+            rgba(103, 209, 255, 0.55),
+            transparent 70%
+          ),
+          radial-gradient(
+            120px 260px at 50% 30%,
+            rgba(155, 123, 255, 0.3),
+            transparent 74%
+          );
+        filter: blur(0.2px);
+      }
+      .fx-laser-flow::before {
+        opacity: 0.95;
+        background: linear-gradient(
+          90deg,
+          rgba(103, 209, 255, 0),
+          rgba(103, 209, 255, 0.65),
+          rgba(155, 123, 255, 0)
+        );
+        width: 40%;
+        left: -40%;
+        right: auto;
+        animation: laser 2.4s ease-in-out infinite;
+        filter: blur(0.4px);
+      }
+      @keyframes laser {
+        0% {
+          transform: translateX(-10%);
+        }
+        50% {
+          transform: translateX(280%);
+        }
+        100% {
+          transform: translateX(320%);
+        }
+      }
+      .fx-pulse-dot {
+        background: rgba(0, 0, 0, 0.22);
+      }
+      .pulse-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(103, 209, 255, 0.95);
+        box-shadow:
+          0 0 18px rgba(103, 209, 255, 0.25),
+          0 0 40px rgba(155, 123, 255, 0.12);
+        position: relative;
+      }
+      .pulse-dot::after {
+        content: "";
+        position: absolute;
+        inset: -10px;
+        border-radius: 999px;
+        border: 1px solid rgba(103, 209, 255, 0.35);
+        animation: pulse 1.35s ease-out infinite;
+      }
+      @keyframes pulse {
+        0% {
+          transform: scale(0.8);
+          opacity: 0.9;
+        }
+        100% {
+          transform: scale(1.35);
+          opacity: 0;
+        }
+      }
+      .typing {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .typing span {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        animation: dots 1.1s ease-in-out infinite;
+      }
+      .typing span:nth-child(2) {
+        animation-delay: 0.12s;
+        opacity: 0.75;
+      }
+      .typing span:nth-child(3) {
+        animation-delay: 0.24s;
+        opacity: 0.62;
+      }
+      @keyframes dots {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-6px);
+        }
+      }
+      .fx-liquid-ether::before {
+        opacity: 0.9;
+        background:
+          radial-gradient(
+            160px 120px at 20% 20%,
+            rgba(103, 209, 255, 0.32),
+            transparent 70%
+          ),
+          radial-gradient(
+            160px 140px at 70% 30%,
+            rgba(155, 123, 255, 0.3),
+            transparent 70%
+          ),
+          radial-gradient(
+            180px 160px at 45% 100%,
+            rgba(80, 255, 196, 0.22),
+            transparent 72%
+          );
+        filter: blur(18px) saturate(1.2);
+        animation: ether 6.6s ease-in-out infinite;
+      }
+      @keyframes ether {
+        0% {
+          transform: translate3d(0, 0, 0) scale(1);
+        }
+        50% {
+          transform: translate3d(-6%, 3%, 0) scale(1.05);
+        }
+        100% {
+          transform: translate3d(0, 0, 0) scale(1);
+        }
+      }
+      .fx-liquid-chrome::before {
+        opacity: 0.95;
+        background:
+          radial-gradient(
+            220px 120px at 30% 30%,
+            rgba(255, 255, 255, 0.22),
+            transparent 62%
+          ),
+          radial-gradient(
+            220px 140px at 70% 30%,
+            rgba(255, 255, 255, 0.18),
+            transparent 62%
+          ),
+          radial-gradient(
+            260px 180px at 50% 120%,
+            rgba(103, 209, 255, 0.22),
+            transparent 64%
+          ),
+          radial-gradient(
+            260px 180px at 50% 110%,
+            rgba(155, 123, 255, 0.18),
+            transparent 68%
+          );
+        filter: contrast(1.25) saturate(1.1) blur(14px);
+        animation: chrome 5.4s ease-in-out infinite;
+      }
+      @keyframes chrome {
+        0% {
+          transform: translate3d(0, 0, 0) scale(1);
+        }
+        50% {
+          transform: translate3d(6%, -3%, 0) scale(1.04);
+        }
+        100% {
+          transform: translate3d(0, 0, 0) scale(1);
+        }
+      }
+      .fx-ribbons::before {
+        opacity: 0.85;
+        background: linear-gradient(
+          90deg,
+          rgba(103, 209, 255, 0.25),
+          rgba(155, 123, 255, 0.22)
+        );
+        mask-image:
+          radial-gradient(200px 80px at 0% 40%, black, transparent 72%),
+          radial-gradient(240px 90px at 20% 70%, black, transparent 76%),
+          radial-gradient(220px 80px at 50% 50%, black, transparent 74%),
+          radial-gradient(240px 90px at 80% 45%, black, transparent 74%),
+          radial-gradient(220px 80px at 100% 70%, black, transparent 74%);
+        mask-size: 200% 200%;
+        animation: ribbons 6.4s ease-in-out infinite;
+        filter: blur(0.2px);
+      }
+      @keyframes ribbons {
+        0% {
+          transform: translateX(-10%);
+        }
+        50% {
+          transform: translateX(10%);
+        }
+        100% {
+          transform: translateX(-10%);
+        }
+      }
+      .fx-prism::before {
+        opacity: 0.9;
+        background: conic-gradient(
+          from 90deg,
+          rgba(103, 209, 255, 0.26),
+          rgba(155, 123, 255, 0.22),
+          rgba(255, 84, 200, 0.18),
+          rgba(80, 255, 196, 0.16),
+          rgba(103, 209, 255, 0.26)
+        );
+        animation: prism 5.8s linear infinite;
+        filter: saturate(1.3) blur(0.2px);
+      }
+      @keyframes prism {
+        0% {
+          transform: rotate(0deg) scale(1.1);
+        }
+        100% {
+          transform: rotate(360deg) scale(1.1);
+        }
+      }
+      .fx-prismatic-burst::before {
+        opacity: 0.9;
+        background:
+          radial-gradient(
+            120px 120px at 50% 50%,
+            rgba(255, 255, 255, 0.14),
+            transparent 70%
+          ),
+          conic-gradient(
+            from 120deg at 50% 50%,
+            rgba(103, 209, 255, 0),
+            rgba(103, 209, 255, 0.22),
+            rgba(155, 123, 255, 0),
+            rgba(155, 123, 255, 0.22),
+            rgba(80, 255, 196, 0),
+            rgba(80, 255, 196, 0.2),
+            rgba(103, 209, 255, 0)
+          );
+        animation: burst 4.4s linear infinite;
+        filter: blur(0.2px);
+      }
+      @keyframes burst {
+        0% {
+          transform: rotate(0deg) scale(1.05);
+        }
+        100% {
+          transform: rotate(360deg) scale(1.05);
+        }
+      }
+      .fx-silk::before {
+        opacity: 0.9;
+        background:
+          radial-gradient(
+            360px 220px at 25% 25%,
+            rgba(103, 209, 255, 0.22),
+            transparent 60%
+          ),
+          radial-gradient(
+            360px 220px at 75% 25%,
+            rgba(155, 123, 255, 0.18),
+            transparent 60%
+          ),
+          radial-gradient(
+            420px 260px at 50% 120%,
+            rgba(80, 255, 196, 0.14),
+            transparent 60%
+          );
+        filter: blur(18px) saturate(1.1);
+      }
+      .fx-silk::after {
+        opacity: 0.35;
+        background-image:
+          linear-gradient(120deg, rgba(255, 255, 255, 0.06), transparent 55%),
+          linear-gradient(45deg, rgba(255, 255, 255, 0.05), transparent 60%),
+          linear-gradient(-60deg, rgba(255, 255, 255, 0.04), transparent 65%);
+        animation: silk 7.4s ease-in-out infinite;
+      }
+      @keyframes silk {
+        0% {
+          transform: translate3d(-8%, 0, 0);
+        }
+        50% {
+          transform: translate3d(8%, 0, 0);
+        }
+        100% {
+          transform: translate3d(-8%, 0, 0);
+        }
+      }
+      .fx-orb::before {
+        opacity: 0.95;
+        background:
+          radial-gradient(
+            120px 120px at var(--mx, 50%) var(--my, 50%),
+            rgba(103, 209, 255, 0.35),
+            transparent 70%
+          ),
+          radial-gradient(
+            160px 140px at calc(var(--mx, 50%) + 8%) calc(var(--my, 50%) + 6%),
+            rgba(155, 123, 255, 0.28),
+            transparent 72%
+          );
+        filter: blur(0.2px);
+      }
+      .fx-ripple-grid::before {
+        opacity: 0.55;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+        background-size: 26px 26px;
+      }
+      .ripple {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(103, 209, 255, 0.75);
+        transform: translate(-50%, -50%);
+        opacity: 0.9;
+        pointer-events: none;
+        animation: ripple 0.85s ease-out forwards;
+        filter: drop-shadow(0 0 10px rgba(103, 209, 255, 0.25));
+      }
+      @keyframes ripple {
+        0% {
+          transform: translate(-50%, -50%) scale(0.7);
+          opacity: 0.9;
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(14);
+          opacity: 0;
+        }
+      }
+      .fx-letter-glitch .glitch {
+        font-size: 22px;
+        font-weight: 900;
+        letter-spacing: 1.2px;
+        position: relative;
+        display: inline-block;
+        text-transform: uppercase;
+      }
+      .fx-letter-glitch .glitch::before,
+      .fx-letter-glitch .glitch::after {
+        content: attr(data-text);
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0.8;
+        mix-blend-mode: screen;
+      }
+      .fx-letter-glitch .glitch::before {
+        color: rgba(103, 209, 255, 0.9);
+        transform: translate(1px, 0);
+        clip-path: inset(0 0 55% 0);
+        animation: glitch 1.2s infinite linear alternate-reverse;
+      }
+      .fx-letter-glitch .glitch::after {
+        color: rgba(255, 84, 200, 0.85);
+        transform: translate(-1px, 0);
+        clip-path: inset(45% 0 0 0);
+        animation: glitch 1.05s infinite linear alternate-reverse;
+      }
+      @keyframes glitch {
+        0% {
+          transform: translate(-1px, 0);
+          filter: blur(0px);
+        }
+        20% {
+          transform: translate(2px, -1px);
+        }
+        40% {
+          transform: translate(-2px, 1px);
+        }
+        60% {
+          transform: translate(1px, 0);
+        }
+        80% {
+          transform: translate(3px, 1px);
+        }
+        100% {
+          transform: translate(-2px, -1px);
+          filter: blur(0.2px);
+        }
+      }
+      .fx-splash-cursor {
+        cursor: crosshair;
+      }
+      .fx-ghost-cursor {
+        cursor: none;
+      }
+      .ghost-dot {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(103, 209, 255, 0.9);
+        box-shadow: 0 0 18px rgba(103, 209, 255, 0.35);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        opacity: 0;
+      }
+      .ghost-ring {
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        border: 1px solid rgba(155, 123, 255, 0.65);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        opacity: 0;
+        filter: drop-shadow(0 0 12px rgba(155, 123, 255, 0.22));
+      }
+      .image-trail {
+        position: absolute;
+        width: 54px;
+        height: 54px;
+        border-radius: 12px;
+        overflow: hidden;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        opacity: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(103, 209, 255, 0.28),
+          rgba(155, 123, 255, 0.22)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(6px);
+      }
+      .image-trail svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .fx-skeleton {
+        background: rgba(0, 0, 0, 0.22);
+      }
+      .skeleton {
+        position: absolute;
+        inset: 0;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .sk-row {
+        height: 12px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        position: relative;
+      }
+      .sk-row.big {
+        height: 18px;
+      }
+      .sk-row.w60 {
+        width: 60%;
+      }
+      .sk-row.w78 {
+        width: 78%;
+      }
+      .sk-row.w92 {
+        width: 92%;
+      }
+      .sk-row::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(103, 209, 255, 0.18),
+          transparent
+        );
+        transform: translateX(-60%);
+        animation: shimmer 1.35s ease-in-out infinite;
+      }
+      @keyframes shimmer {
+        0% {
+          transform: translateX(-60%);
+        }
+        100% {
+          transform: translateX(160%);
+        }
+      }
+      .fx-glow-border {
+        background: rgba(0, 0, 0, 0.22);
+      }
+      .glow-box {
+        position: absolute;
+        inset: 18px;
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        overflow: hidden;
+      }
+      .glow-box::before {
+        content: "";
+        position: absolute;
+        inset: -60%;
+        background: conic-gradient(
+          from 0deg,
+          rgba(103, 209, 255, 0),
+          rgba(103, 209, 255, 0.55),
+          rgba(155, 123, 255, 0),
+          rgba(155, 123, 255, 0.55),
+          rgba(103, 209, 255, 0)
+        );
+        animation: spin 2.8s linear infinite;
+        filter: blur(8px);
+        opacity: 0.75;
+      }
+      .glow-box::after {
+        content: "";
+        position: absolute;
+        inset: 2px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .ui-center {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        gap: 10px;
+        padding: 14px;
+        text-align: center;
+      }
+      .btn {
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.92);
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+        user-select: none;
+        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(10px);
+      }
+      .btn.primary {
+        border-color: rgba(103, 209, 255, 0.35);
+        background: rgba(103, 209, 255, 0.14);
+      }
+      .tilt {
+        width: min(260px, 85%);
+        height: 120px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: linear-gradient(
+          135deg,
+          rgba(103, 209, 255, 0.16),
+          rgba(155, 123, 255, 0.12)
+        );
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+        transform-style: preserve-3d;
+        transition: transform 120ms ease;
+        display: grid;
+        place-items: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .tilt::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          160px 110px at var(--tx, 50%) var(--ty, 50%),
+          rgba(255, 255, 255, 0.16),
+          transparent 60%
+        );
+        opacity: 0.9;
+      }
+      .tilt strong {
+        position: relative;
+        transform: translateZ(24px);
+        font-size: 14px;
+      }
+      .toast-host {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 9999;
+        pointer-events: none;
+      }
+      .toast {
+        pointer-events: none;
+        width: 320px;
+        max-width: calc(100vw - 32px);
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(12px);
+        padding: 12px 12px;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+        transform: translateY(6px);
+        opacity: 0;
+        animation: toastIn 220ms ease forwards;
+      }
+      @keyframes toastIn {
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .toast .t {
+        font-weight: 800;
+        font-size: 13px;
+        letter-spacing: 0.2px;
+        margin: 0;
+      }
+      .toast .d {
+        margin: 6px 0 0;
+        font-size: 12px;
+        line-height: 1.45;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      body.reduced .sk-row::after,
+      body.reduced .glow-box::before,
+      body.reduced .fx-gradient-blinds::before,
+      body.reduced .fx-iridescence::before,
+      body.reduced .fx-grid-motion::before,
+      body.reduced .fx-grid-scan::after,
+      body.reduced .fx-grid-distortion::before,
+      body.reduced .fx-light-rays::before,
+      body.reduced .fx-laser-flow::before,
+      body.reduced .fx-liquid-ether::before,
+      body.reduced .fx-liquid-chrome::before,
+      body.reduced .fx-ribbons::before,
+      body.reduced .fx-prism::before,
+      body.reduced .fx-prismatic-burst::before,
+      body.reduced .fx-silk::after,
+      body.reduced .pulse-dot::after,
+      body.reduced .typing span,
+      body.reduced .fx-letter-glitch .glitch::before,
+      body.reduced .fx-letter-glitch .glitch::after {
+        animation: none !important;
+      }
+      .footer {
+        margin-top: 16px;
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+      .footer code {
+        padding: 2px 6px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .recbox {
+        margin-top: 14px;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.06),
+          rgba(255, 255, 255, 0.03)
+        );
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+        padding: 14px;
+      }
+      .recs {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .recbox.wide {
+        grid-column: 1 / -1;
+      }
+      @media (max-width: 860px) {
+        .recs {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .recbox h2 {
+        margin: 0 0 8px;
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+      }
+      .recbox p {
+        margin: 0 0 10px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+      .recbox ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+      .recbox li {
+        margin: 6px 0;
+        font-size: 12px;
+        line-height: 1.55;
+        color: rgba(255, 255, 255, 0.78);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="top">
+        <div class="brand">
+          <h1>Effects Demo（LPDP-RiR）</h1>
+          <p>
+            单页集成展示：背景氛围、状态动效、交互光标、Canvas
+            特效（用于选型与沟通，不依赖任何外部库）
+          </p>
+        </div>
+        <div class="controls">
+          <div class="field">
+            <span style="color: var(--muted); font-size: 12px">筛选</span>
+            <input
+              id="q"
+              placeholder="输入效果名，例如 Grid / Liquid / Cursor ..."
+            />
+          </div>
+          <div class="field">
+            <span style="color: var(--muted); font-size: 12px">类别</span>
+            <select id="cat">
+              <option value="all">全部</option>
+              <option value="background">背景/氛围</option>
+              <option value="status">状态/加载</option>
+              <option value="interaction">交互/光标/文字</option>
+              <option value="ui">组件/控件</option>
+              <option value="canvas">Canvas/粒子</option>
+            </select>
+            <span class="caret"></span>
+          </div>
+          <label class="pill">
+            <input id="reduce" type="checkbox" />
+            <span>Reduced Motion</span>
+          </label>
+        </div>
+      </div>
+
+      <div id="grid" class="grid">
+        <div class="cat" data-cat="background">
+          <h2>背景/氛围</h2>
+          <p>适合首页 Hero、报告封面、仪表盘背景层（建议低强度）</p>
+        </div>
+
+        <section
+          class="card"
+          data-name="Noise"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Noise</strong>
+              <span>弱噪声叠层（质感底纹）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-noise">
+            <div class="center">
+              <div class="hint">
+                用于报告/仪表盘底纹，提升高级感，不干扰内容。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Grainient"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Grainient</strong>
+              <span>渐变 + 颗粒（品牌氛围）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-grainient">
+            <div class="center">
+              <div class="hint">
+                适合首页 Hero 背景（低强度），和卡片式布局搭配。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Gradient Blinds"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Gradient Blinds</strong>
+              <span>条纹百叶窗渐变</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-gradient-blinds">
+            <div class="center">
+              <div class="hint">
+                适合作为页面顶部装饰带或加载状态背景（弱化）。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Iridescence"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Iridescence</strong>
+              <span>虹彩渐变（慢速色相旋转）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-iridescence">
+            <div class="center">
+              <div class="hint">
+                适合品牌页/介绍页标题区，频率要低、对比要低。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Grid Motion"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Grid Motion</strong>
+              <span>网格漂移（科技感）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-grid-motion">
+            <div class="center">
+              <div class="hint">适合平台/系统页面背景（透明度建议很低）。</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Grid Distortion"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Grid Distortion</strong>
+              <span>网格轻透视扭曲</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-grid-distortion">
+            <div class="center">
+              <div class="hint">适合科技背景，但建议弱化，不要影响可读性。</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Light Rays"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Light Rays</strong>
+              <span>旋转光束（氛围光）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-light-rays">
+            <div class="center">
+              <div class="hint">适合 Hero 顶部做氛围光，注意低亮度。</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Light Pillar"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Light Pillar</strong>
+              <span>竖向光柱聚焦</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-light-pillar">
+            <div class="center">
+              <div class="hint">适合登录/注册等表单页的“中心聚焦”。</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Liquid Ether"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Liquid Ether</strong>
+              <span>柔和流体（低对比）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-liquid-ether">
+            <div class="center">
+              <div class="hint">适合产品页背景氛围，频率要低。</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Liquid Chrome"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Liquid Chrome</strong>
+              <span>高对比流体高光</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-liquid-chrome">
+            <div class="center">
+              <div class="hint">
+                适合营销封面/大屏展示，普通信息页建议禁用。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Ribbons"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Ribbons</strong>
+              <span>飘带装饰（页头更适合）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-ribbons">
+            <div class="center">
+              <div class="hint">
+                适合 History / Overview 页头横幅（可改为静态）。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Prism"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Prism</strong>
+              <span>棱镜渐变旋转</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-prism">
+            <div class="center">
+              <div class="hint">适合章节分隔/标题背景，注意降低饱和度。</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Prismatic Burst"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Prismatic Burst</strong>
+              <span>棱镜爆发光晕</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-prismatic-burst">
+            <div class="center">
+              <div class="hint">
+                适合 CTA 区域/封面短驻场景，不建议常驻信息页。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Silk"
+          data-type="CSS"
+          data-cat="background"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Silk</strong>
+              <span>丝绸质感（柔和层叠）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-silk">
+            <div class="center">
+              <div class="hint">适合表单页/设置页等“轻背景+卡片”结构。</div>
+            </div>
+          </div>
+        </section>
+
+        <div class="cat" data-cat="status">
+          <h2>状态/加载</h2>
+          <p>建议按需出现（分析中/生成中/上传中），不要在信息页常驻</p>
+        </div>
+
+        <section
+          class="card"
+          data-name="Grid Scan"
+          data-type="CSS"
+          data-cat="status"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Grid Scan</strong>
+              <span>网格扫描线（状态隐喻）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-grid-scan">
+            <div class="center">
+              <div class="hint">适合“分析中/加载中”，不要常驻。</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Laser Flow"
+          data-type="CSS"
+          data-cat="status"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Laser Flow</strong>
+              <span>流光状态条</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage only-css fx-laser-flow">
+            <div class="center">
+              <div class="hint">
+                适合进度/状态组件：导入中、分析中、导出中。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Pulse Dot"
+          data-type="CSS"
+          data-cat="status"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Pulse Dot</strong>
+              <span>运行中指示（低干扰）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage fx-pulse-dot">
+            <div class="center">
+              <div class="pulse-dot"></div>
+              <div class="muted">Processing…</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Typing Dots"
+          data-type="CSS"
+          data-cat="status"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Typing Dots</strong>
+              <span>省略点加载（适合微状态）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage" style="background: rgba(0, 0, 0, 0.22)">
+            <div class="center">
+              <div class="typing"><span></span><span></span><span></span></div>
+              <div class="muted">Generating report…</div>
+            </div>
+          </div>
+        </section>
+
+        <div class="cat" data-cat="interaction">
+          <h2>交互/光标/文字</h2>
+          <p>适合 Model/History/登录等页面的交互反馈（可按需启用）</p>
+        </div>
+
+        <section
+          class="card"
+          data-name="Orb"
+          data-type="CSS+JS"
+          data-cat="interaction"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Orb</strong>
+              <span>跟随鼠标的聚焦光晕</span>
+            </div>
+            <span class="badge">CSS+JS</span>
+          </div>
+          <div class="stage only-css fx-orb" data-js="orb">
+            <div class="center">
+              <div class="hint">在此区域移动鼠标。</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Ripple Grid"
+          data-type="CSS+JS"
+          data-cat="interaction"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Ripple Grid</strong>
+              <span>网格 + 点击涟漪反馈</span>
+            </div>
+            <span class="badge">CSS+JS</span>
+          </div>
+          <div class="stage only-css fx-ripple-grid" data-js="ripple">
+            <div class="center">
+              <div class="hint">
+                点击区域产生涟漪，适合卡片/表格 hover/点击反馈。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Letter Glitch"
+          data-type="CSS"
+          data-cat="interaction"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Letter Glitch</strong>
+              <span>文字错位抖动（谨慎使用）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div
+            class="stage fx-letter-glitch"
+            style="background: rgba(0, 0, 0, 0.22)"
+          >
+            <div class="center">
+              <div class="big glitch" data-text="LPDP-RiR">LPDP-RiR</div>
+              <div class="muted">
+                用于科技营销短驻场景，不建议医疗内容常驻。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Ghost Cursor"
+          data-type="JS"
+          data-cat="interaction"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Ghost Cursor</strong>
+              <span>幽灵光标（跟随/滞后）</span>
+            </div>
+            <span class="badge">JS</span>
+          </div>
+          <div class="stage fx-ghost-cursor" data-js="ghost">
+            <div class="center">
+              <div class="hint">移动鼠标（此区域隐藏系统光标）。</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Splash Cursor"
+          data-type="JS"
+          data-cat="interaction"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Splash Cursor</strong>
+              <span>点击溅射（局部启用更合适）</span>
+            </div>
+            <span class="badge">JS</span>
+          </div>
+          <div class="stage fx-splash-cursor" data-js="splash">
+            <canvas></canvas>
+            <div class="center">
+              <div class="hint">点击产生溅射粒子。</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Image Trail"
+          data-type="JS"
+          data-cat="interaction"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Image Trail</strong>
+              <span>图像拖影（建议只用于影像查看容器）</span>
+            </div>
+            <span class="badge">JS</span>
+          </div>
+          <div class="stage" data-js="imageTrail">
+            <div class="center">
+              <div class="hint">移动鼠标生成图像拖影（局部启用）。</div>
+            </div>
+          </div>
+        </section>
+
+        <div class="cat" data-cat="ui">
+          <h2>组件/控件</h2>
+          <p>适合 Loading、按钮反馈、微交互（更偏产品组件而非背景）</p>
+        </div>
+
+        <section
+          class="card"
+          data-name="Shimmer Skeleton"
+          data-type="CSS"
+          data-cat="ui"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Shimmer Skeleton</strong>
+              <span>骨架屏闪烁（加载占位）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage fx-skeleton">
+            <div class="skeleton">
+              <div class="sk-row big w78"></div>
+              <div class="sk-row w92"></div>
+              <div class="sk-row w60"></div>
+              <div class="sk-row w92"></div>
+              <div class="sk-row w78"></div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Glow Border"
+          data-type="CSS"
+          data-cat="ui"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Glow Border</strong>
+              <span>发光描边（高亮卡片/CTA）</span>
+            </div>
+            <span class="badge">CSS</span>
+          </div>
+          <div class="stage fx-glow-border">
+            <div class="glow-box"></div>
+            <div class="center">
+              <div class="hint">适合“当前选中项/推荐配置/CTA 卡片”。</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Magnetic Button"
+          data-type="JS"
+          data-cat="ui"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Magnetic Button</strong>
+              <span>磁吸按钮（鼠标靠近轻微吸附）</span>
+            </div>
+            <span class="badge">JS</span>
+          </div>
+          <div class="stage" data-js="magnet">
+            <div class="ui-center">
+              <button class="btn primary magnet-btn" type="button">
+                立即体验
+              </button>
+              <div
+                class="hint"
+                style="color: rgba(255, 255, 255, 0.7); font-size: 12px"
+              >
+                移动鼠标靠近按钮。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Tilt Card"
+          data-type="JS"
+          data-cat="ui"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Tilt Card</strong>
+              <span>轻微 3D 倾斜（卡片 hover）</span>
+            </div>
+            <span class="badge">JS</span>
+          </div>
+          <div class="stage" data-js="tilt">
+            <div class="ui-center" style="pointer-events: none">
+              <div class="tilt">
+                <strong>LPDP-RiR</strong>
+              </div>
+              <div
+                class="hint"
+                style="color: rgba(255, 255, 255, 0.7); font-size: 12px"
+              >
+                在区域内移动鼠标。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" data-name="Toast" data-type="JS" data-cat="ui">
+          <div class="card-header">
+            <div class="name">
+              <strong>Toast</strong>
+              <span>轻提示（操作成功/失败）</span>
+            </div>
+            <span class="badge">JS</span>
+          </div>
+          <div class="stage" data-js="toast">
+            <div class="ui-center">
+              <button class="btn toast-btn" type="button">触发提示</button>
+              <div
+                class="hint"
+                style="color: rgba(255, 255, 255, 0.7); font-size: 12px"
+              >
+                适合上传、保存设置、导出报告等。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="cat" data-cat="canvas">
+          <h2>Canvas/粒子</h2>
+          <p>适合短驻 Loading、背景氛围、局部交互（注意性能与可读性）</p>
+        </div>
+
+        <section
+          class="card"
+          data-name="Particles"
+          data-type="Canvas"
+          data-cat="canvas"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Particles</strong>
+              <span>稀疏粒子背景</span>
+            </div>
+            <span class="badge">Canvas</span>
+          </div>
+          <div class="stage" data-js="particles">
+            <canvas></canvas>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Hyperspeed"
+          data-type="Canvas"
+          data-cat="canvas"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Hyperspeed</strong>
+              <span>速度隧道（短驻 loading 更合适）</span>
+            </div>
+            <span class="badge">Canvas</span>
+          </div>
+          <div class="stage" data-js="hyperspeed">
+            <canvas></canvas>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Progress Ring"
+          data-type="Canvas"
+          data-cat="canvas"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Progress Ring</strong>
+              <span>环形进度（局部 loading）</span>
+            </div>
+            <span class="badge">Canvas</span>
+          </div>
+          <div class="stage" data-js="progressRing">
+            <canvas></canvas>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Lightning"
+          data-type="Canvas"
+          data-cat="canvas"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Lightning</strong>
+              <span>闪电分形（谨慎使用）</span>
+            </div>
+            <span class="badge">Canvas</span>
+          </div>
+          <div class="stage" data-js="lightning">
+            <canvas></canvas>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Pixel Snow"
+          data-type="Canvas"
+          data-cat="canvas"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Pixel Snow</strong>
+              <span>像素雪（轻量可爱风）</span>
+            </div>
+            <span class="badge">Canvas</span>
+          </div>
+          <div class="stage" data-js="pixelSnow">
+            <canvas></canvas>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Pixel Blast"
+          data-type="Canvas"
+          data-cat="canvas"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Pixel Blast</strong>
+              <span>点击像素爆裂</span>
+            </div>
+            <span class="badge">Canvas</span>
+          </div>
+          <div class="stage" data-js="pixelBlast">
+            <canvas></canvas>
+            <div class="center">
+              <div class="hint">点击触发爆裂。</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          data-name="Plasma"
+          data-type="Canvas"
+          data-cat="canvas"
+        >
+          <div class="card-header">
+            <div class="name">
+              <strong>Plasma</strong>
+              <span>等离子纹理（程序纹理）</span>
+            </div>
+            <span class="badge">Canvas</span>
+          </div>
+          <div class="stage" data-js="plasma">
+            <canvas></canvas>
+          </div>
+        </section>
+      </div>
+
+      <div class="recs">
+        <div class="recbox wide">
+          <h2>按模块推荐（页面级选型）</h2>
+          <p>
+            单页别堆太多动效（建议 2–3 个以内）。优先用低干扰背景 +
+            局部交互/状态动效。
+          </p>
+        </div>
+
+        <div class="recbox">
+          <h2>首页（Homepage）</h2>
+          <ul>
+            <li>主推：Grainient / Noise、Iridescence（极慢淡渐变）</li>
+            <li>
+              可选：Grid Motion、Light Rays（仅 Hero 区弱化）、Glow
+              Border、Magnetic Button（只用于主按钮）
+            </li>
+            <li>
+              不建议：Splash Cursor、Image Trail、Letter
+              Glitch（偏炫、干扰信息阅读）
+            </li>
+          </ul>
+        </div>
+
+        <div class="recbox">
+          <h2>介绍页（Introduction）</h2>
+          <ul>
+            <li>主推：Noise / Grainient、Ripple Grid（卡片/标题 hover）</li>
+            <li>
+              可选：Prism（章节分隔条）、Iridescence（标题背景弱化）、Shimmer
+              Skeleton（加载占位）
+            </li>
+            <li>不建议：Hyperspeed、Pixel Blast（信息页不适合）</li>
+          </ul>
+        </div>
+
+        <div class="recbox">
+          <h2>模型页（Model / 推理分析页）</h2>
+          <ul>
+            <li>
+              主推：Grid Scan（分析中状态隐喻）、Laser
+              Flow（进度/状态）、Orb（聚焦当前切片/结果）
+            </li>
+            <li>
+              可选：Progress Ring（局部 loading）、Pulse Dot（状态指示）、Light
+              Pillar / Light Rays（顶部弱化）、Toast（导出反馈）
+            </li>
+            <li>不建议：Lightning、Letter Glitch（医疗严肃性不匹配）</li>
+          </ul>
+        </div>
+
+        <div class="recbox">
+          <h2>历史页（History）</h2>
+          <ul>
+            <li>主推：Noise / Grainient、Ripple Grid（列表 hover/选中反馈）</li>
+            <li>
+              可选：Ribbons（页头装饰条，静态或极慢）、Toast（删除/导出等反馈）
+            </li>
+            <li>不建议：动态背景大面积循环（影响扫读效率）</li>
+          </ul>
+        </div>
+
+        <div class="recbox">
+          <h2>登录 / 注册 / 修改密码</h2>
+          <ul>
+            <li>主推（只用 1 个）：Orb（中心聚焦表单）、Noise（提升质感）</li>
+            <li>
+              可选：Silk / Liquid Ether（极慢、低对比背景）、Glow
+              Border（强调按钮/表单卡片）、Shimmer Skeleton（请求中占位）
+            </li>
+            <li>不建议：Ghost Cursor、Splash Cursor（输入框场景易干扰）</li>
+          </ul>
+        </div>
+
+        <div class="recbox">
+          <h2>HTML 报告</h2>
+          <ul>
+            <li>主推：Noise / Grainient + Ripple Grid（卡片/表格 hover）</li>
+            <li>
+              状态动效（按需出现）：Typing Dots / Pulse Dot + Grid Scan（短驻）+
+              Laser Flow（进度/状态）
+            </li>
+            <li>
+              影像查看区（局部启用）：Image Trail 或 Splash
+              Cursor（只在影像容器内）
+            </li>
+            <li>
+              不建议大面积常驻：Hyperspeed、Pixel Blast、Letter
+              Glitch、Lightning（炫但不稳重）
+            </li>
+          </ul>
+        </div>
+
+        <div class="recbox">
+          <h2>3D 分析器（3D Analyzer）</h2>
+          <ul>
+            <li>
+              主推：Orb（聚焦当前 3D 视图/选中目标）、Glow
+              Border（高亮当前工具/选中对象）
+            </li>
+            <li>
+              可选：Noise / Grainient、Ripple Grid（按钮/控件
+              hover）、Toast（导出/保存反馈）
+            </li>
+            <li>
+              状态动效（按需出现）：Progress Ring / Typing
+              Dots（重建/加载中）、Pulse Dot（在线/连接状态）
+            </li>
+            <li>
+              不建议：Hyperspeed、Pixel
+              Blast、Plasma、Lightning（大面积常驻易晕/影响观察）
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div>打开方式：用浏览器打开 <code>effects.html</code>。</div>
+        <div>
+          提示：开启 <code>Reduced Motion</code> 会暂停 Canvas
+          动画并降低交互特效强度。
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const $ = (q, el = document) => el.querySelector(q);
+      const $$ = (q, el = document) => Array.from(el.querySelectorAll(q));
+
+      const state = {
+        reduce: false,
+      };
+
+      function resizeCanvas(canvas) {
+        const stage = canvas.parentElement;
+        const rect = stage.getBoundingClientRect();
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        const w = Math.max(2, Math.floor(rect.width * dpr));
+        const h = Math.max(2, Math.floor(rect.height * dpr));
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width = w;
+          canvas.height = h;
+        }
+        return { w, h, dpr };
+      }
+
+      function clamp(v, a, b) {
+        return Math.max(a, Math.min(b, v));
+      }
+
+      function now() {
+        return performance.now();
+      }
+
+      function makeRng(seed) {
+        let t = seed >>> 0;
+        return () => {
+          t += 0x6d2b79f5;
+          let r = Math.imul(t ^ (t >>> 15), 1 | t);
+          r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+          return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function colorMix(a, b, t) {
+        const ar = (a >> 16) & 255;
+        const ag = (a >> 8) & 255;
+        const ab = a & 255;
+        const br = (b >> 16) & 255;
+        const bg = (b >> 8) & 255;
+        const bb = b & 255;
+        const rr = Math.round(ar + (br - ar) * t);
+        const rg = Math.round(ag + (bg - ag) * t);
+        const rb = Math.round(ab + (bb - ab) * t);
+        return (rr << 16) | (rg << 8) | rb;
+      }
+
+      function rgba(hex, a) {
+        const r = (hex >> 16) & 255;
+        const g = (hex >> 8) & 255;
+        const b = hex & 255;
+        return `rgba(${r},${g},${b},${a})`;
+      }
+
+      function setupOrb(stage) {
+        const onMove = (e) => {
+          const r = stage.getBoundingClientRect();
+          const x = clamp(((e.clientX - r.left) / r.width) * 100, 0, 100);
+          const y = clamp(((e.clientY - r.top) / r.height) * 100, 0, 100);
+          stage.style.setProperty("--mx", `${x}%`);
+          stage.style.setProperty("--my", `${y}%`);
+        };
+        stage.addEventListener("pointermove", onMove);
+        stage.addEventListener("pointerleave", () => {
+          stage.style.setProperty("--mx", `50%`);
+          stage.style.setProperty("--my", `50%`);
+        });
+        return () => {
+          stage.removeEventListener("pointermove", onMove);
+        };
+      }
+
+      function setupRipple(stage) {
+        const onDown = (e) => {
+          const r = stage.getBoundingClientRect();
+          const x = e.clientX - r.left;
+          const y = e.clientY - r.top;
+          const d = document.createElement("div");
+          d.className = "ripple";
+          d.style.left = `${x}px`;
+          d.style.top = `${y}px`;
+          stage.appendChild(d);
+          const ms = state.reduce ? 420 : 850;
+          d.style.animationDuration = `${ms}ms`;
+          setTimeout(() => d.remove(), ms + 50);
+        };
+        stage.addEventListener("pointerdown", onDown);
+        return () => stage.removeEventListener("pointerdown", onDown);
+      }
+
+      function setupGhostCursor(stage) {
+        const dot = document.createElement("div");
+        dot.className = "ghost-dot";
+        const ring = document.createElement("div");
+        ring.className = "ghost-ring";
+        stage.appendChild(dot);
+        stage.appendChild(ring);
+
+        let targetX = 0;
+        let targetY = 0;
+        let x = 0;
+        let y = 0;
+        let rx = 0;
+        let ry = 0;
+        let raf = 0;
+
+        const loop = () => {
+          const s1 = state.reduce ? 0.38 : 0.22;
+          const s2 = state.reduce ? 0.2 : 0.12;
+          x += (targetX - x) * s1;
+          y += (targetY - y) * s1;
+          rx += (targetX - rx) * s2;
+          ry += (targetY - ry) * s2;
+          dot.style.left = `${x}px`;
+          dot.style.top = `${y}px`;
+          ring.style.left = `${rx}px`;
+          ring.style.top = `${ry}px`;
+          raf = requestAnimationFrame(loop);
+        };
+
+        const onMove = (e) => {
+          const r = stage.getBoundingClientRect();
+          targetX = e.clientX - r.left;
+          targetY = e.clientY - r.top;
+          dot.style.opacity = "1";
+          ring.style.opacity = "1";
+          if (!raf) raf = requestAnimationFrame(loop);
+        };
+        const onLeave = () => {
+          dot.style.opacity = "0";
+          ring.style.opacity = "0";
+        };
+        stage.addEventListener("pointermove", onMove);
+        stage.addEventListener("pointerleave", onLeave);
+
+        return () => {
+          stage.removeEventListener("pointermove", onMove);
+          stage.removeEventListener("pointerleave", onLeave);
+          if (raf) cancelAnimationFrame(raf);
+          raf = 0;
+          dot.remove();
+          ring.remove();
+        };
+      }
+
+      function setupImageTrail(stage) {
+        const svg = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="rgba(103,209,255,0.9)"/><stop offset="1" stop-color="rgba(155,123,255,0.85)"/></linearGradient></defs><rect x="10" y="14" width="100" height="72" rx="12" fill="rgba(0,0,0,0.22)" stroke="rgba(255,255,255,0.18)"/><path d="M22 70 L48 48 L66 62 L82 44 L98 70 Z" fill="url(#g)" opacity="0.85"/><circle cx="44" cy="38" r="7" fill="rgba(255,255,255,0.65)"/><rect x="10" y="92" width="100" height="14" rx="7" fill="rgba(255,255,255,0.10)"/></svg>`;
+
+        const nodes = [];
+        const max = 10;
+        for (let i = 0; i < max; i++) {
+          const d = document.createElement("div");
+          d.className = "image-trail";
+          d.style.opacity = "0";
+          d.style.transform = "translate(-50%, -50%) scale(0.92)";
+          d.innerHTML = svg;
+          stage.appendChild(d);
+          nodes.push({ el: d, t: 0, x: 0, y: 0 });
+        }
+
+        let idx = 0;
+        let last = 0;
+        const minGap = state.reduce ? 70 : 34;
+
+        const onMove = (e) => {
+          const r = stage.getBoundingClientRect();
+          const x = e.clientX - r.left;
+          const y = e.clientY - r.top;
+          const t = now();
+          if (t - last < minGap) return;
+          last = t;
+          const n = nodes[idx];
+          idx = (idx + 1) % nodes.length;
+          n.t = t;
+          n.x = x;
+          n.y = y;
+          n.el.style.left = `${x}px`;
+          n.el.style.top = `${y}px`;
+          n.el.style.opacity = "1";
+          const s = 0.92 + Math.random() * 0.08;
+          n.el.style.transform = `translate(-50%, -50%) scale(${s}) rotate(${(Math.random() - 0.5) * 6}deg)`;
+        };
+
+        let raf = 0;
+        const loop = () => {
+          const t = now();
+          for (const n of nodes) {
+            const age = (t - n.t) / (state.reduce ? 520 : 820);
+            if (n.t === 0) continue;
+            const a = 1 - clamp(age, 0, 1);
+            n.el.style.opacity = String(a * 0.95);
+            if (age >= 1) n.t = 0;
+          }
+          raf = requestAnimationFrame(loop);
+        };
+
+        stage.addEventListener("pointermove", onMove);
+        stage.addEventListener("pointerleave", () => {});
+        raf = requestAnimationFrame(loop);
+
+        return () => {
+          stage.removeEventListener("pointermove", onMove);
+          if (raf) cancelAnimationFrame(raf);
+          for (const n of nodes) n.el.remove();
+        };
+      }
+
+      let toastHost = null;
+      function getToastHost() {
+        if (toastHost) return toastHost;
+        const host = document.createElement("div");
+        host.className = "toast-host";
+        document.body.appendChild(host);
+        toastHost = host;
+        return host;
+      }
+
+      function pushToast(title, desc) {
+        const host = getToastHost();
+        const t = document.createElement("div");
+        t.className = "toast";
+        t.innerHTML = `<p class="t">${title}</p><p class="d">${desc}</p>`;
+        host.appendChild(t);
+        const ttl = state.reduce ? 1400 : 2200;
+        window.setTimeout(() => {
+          t.style.opacity = "0";
+          t.style.transform = "translateY(6px)";
+          window.setTimeout(() => t.remove(), 220);
+        }, ttl);
+      }
+
+      function setupMagnet(stage) {
+        const btn = $(".magnet-btn", stage);
+        if (!btn) return () => {};
+
+        let targetX = 0;
+        let targetY = 0;
+        let curX = 0;
+        let curY = 0;
+        let raf = 0;
+
+        const loop = () => {
+          curX += (targetX - curX) * 0.12;
+          curY += (targetY - curY) * 0.12;
+          btn.style.transform = `translate(${curX}px, ${curY}px)`;
+          raf = requestAnimationFrame(loop);
+        };
+
+        const onMove = (e) => {
+          if (state.reduce) return;
+          const sr = stage.getBoundingClientRect();
+          const br = btn.getBoundingClientRect();
+          const cx = br.left + br.width * 0.5;
+          const cy = br.top + br.height * 0.5;
+          const dx = e.clientX - cx;
+          const dy = e.clientY - cy;
+          const dist = Math.hypot(dx, dy);
+          const maxDist = Math.max(90, Math.min(sr.width, sr.height) * 0.38);
+          const k = clamp(1 - dist / maxDist, 0, 1);
+          targetX = dx * 0.14 * k;
+          targetY = dy * 0.14 * k;
+          if (!raf) raf = requestAnimationFrame(loop);
+        };
+
+        const onLeave = () => {
+          targetX = 0;
+          targetY = 0;
+        };
+
+        stage.addEventListener("pointermove", onMove);
+        stage.addEventListener("pointerleave", onLeave);
+
+        return () => {
+          stage.removeEventListener("pointermove", onMove);
+          stage.removeEventListener("pointerleave", onLeave);
+          if (raf) cancelAnimationFrame(raf);
+          raf = 0;
+          btn.style.transform = "";
+        };
+      }
+
+      function setupTilt(stage) {
+        const card = $(".tilt", stage);
+        if (!card) return () => {};
+
+        const onMove = (e) => {
+          if (state.reduce) return;
+          const r = stage.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width;
+          const y = (e.clientY - r.top) / r.height;
+          const rx = clamp((0.5 - y) * 10, -10, 10);
+          const ry = clamp((x - 0.5) * 14, -14, 14);
+          card.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+          card.style.setProperty("--tx", `${Math.round(x * 100)}%`);
+          card.style.setProperty("--ty", `${Math.round(y * 100)}%`);
+        };
+
+        const onLeave = () => {
+          card.style.transform = "";
+          card.style.setProperty("--tx", "50%");
+          card.style.setProperty("--ty", "50%");
+        };
+
+        stage.addEventListener("pointermove", onMove);
+        stage.addEventListener("pointerleave", onLeave);
+
+        return () => {
+          stage.removeEventListener("pointermove", onMove);
+          stage.removeEventListener("pointerleave", onLeave);
+        };
+      }
+
+      function setupToast(stage) {
+        const btn = $(".toast-btn", stage);
+        if (!btn) return () => {};
+        const onClick = () => {
+          pushToast("操作已完成", "用于保存设置、上传完成、导出报告等反馈。");
+        };
+        btn.addEventListener("click", onClick);
+        return () => btn.removeEventListener("click", onClick);
+      }
+
+      function makeCanvasDemo(stage, factory) {
+        const canvas = $("canvas", stage);
+        const ctx = canvas.getContext("2d", { alpha: true });
+        let stop = () => {};
+        let alive = false;
+        let raf = 0;
+
+        const start = () => {
+          if (alive) return;
+          alive = true;
+          stop =
+            factory({
+              stage,
+              canvas,
+              ctx,
+              resize: () => resizeCanvas(canvas),
+            }) || (() => {});
+        };
+
+        const end = () => {
+          if (!alive) return;
+          alive = false;
+          if (raf) cancelAnimationFrame(raf);
+          raf = 0;
+          try {
+            stop();
+          } catch {}
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        };
+
+        return { start, end, setRaf: (id) => (raf = id) };
+      }
+
+      function demoParticles({ stage, canvas, ctx, resize }) {
+        const rng = makeRng(1337);
+        const pts = [];
+        const N = 70;
+        let w = 0;
+        let h = 0;
+
+        function reset() {
+          const r = resize();
+          w = r.w;
+          h = r.h;
+          pts.length = 0;
+          for (let i = 0; i < N; i++) {
+            pts.push({
+              x: rng() * w,
+              y: rng() * h,
+              vx: (rng() - 0.5) * 0.25,
+              vy: (rng() - 0.5) * 0.25,
+              r: 0.8 + rng() * 2.2,
+              a: 0.18 + rng() * 0.35,
+            });
+          }
+        }
+
+        reset();
+        window.addEventListener("resize", reset);
+
+        let raf = 0;
+        const loop = () => {
+          ctx.clearRect(0, 0, w, h);
+          ctx.fillStyle = "rgba(255,255,255,0.0)";
+          ctx.fillRect(0, 0, w, h);
+          const move = state.reduce ? 0 : 1;
+
+          for (const p of pts) {
+            p.x += p.vx * move;
+            p.y += p.vy * move;
+            if (p.x < -20) p.x = w + 20;
+            if (p.x > w + 20) p.x = -20;
+            if (p.y < -20) p.y = h + 20;
+            if (p.y > h + 20) p.y = -20;
+
+            const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 8);
+            g.addColorStop(0, "rgba(103,209,255," + p.a + ")");
+            g.addColorStop(0.5, "rgba(155,123,255," + p.a * 0.65 + ")");
+            g.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r * 8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          raf = requestAnimationFrame(loop);
+        };
+        raf = requestAnimationFrame(loop);
+
+        return () => {
+          cancelAnimationFrame(raf);
+          window.removeEventListener("resize", reset);
+        };
+      }
+
+      function demoHyperspeed({ stage, canvas, ctx, resize }) {
+        const rng = makeRng(42);
+        const stars = [];
+        const N = 220;
+        let w = 0;
+        let h = 0;
+        let cx = 0;
+        let cy = 0;
+
+        function reset() {
+          const r = resize();
+          w = r.w;
+          h = r.h;
+          cx = w / 2;
+          cy = h / 2;
+          stars.length = 0;
+          for (let i = 0; i < N; i++) {
+            stars.push({
+              x: (rng() - 0.5) * w,
+              y: (rng() - 0.5) * h,
+              z: 0.25 + rng() * 0.75,
+            });
+          }
+        }
+        reset();
+        window.addEventListener("resize", reset);
+
+        let raf = 0;
+        const loop = () => {
+          ctx.clearRect(0, 0, w, h);
+          ctx.fillStyle = "rgba(0,0,0,0)";
+
+          const speed = state.reduce ? 0 : 0.013;
+          for (const s of stars) {
+            s.z -= speed;
+            if (s.z <= 0.22) {
+              s.x = (rng() - 0.5) * w;
+              s.y = (rng() - 0.5) * h;
+              s.z = 1;
+            }
+            const px = s.x / s.z + cx;
+            const py = s.y / s.z + cy;
+            const size = (1 - s.z) * 2.2 + 0.4;
+            const a = clamp((1 - s.z) * 0.7, 0, 0.8);
+
+            ctx.fillStyle = `rgba(103,209,255,${a})`;
+            ctx.fillRect(px, py, size, size);
+
+            const lx = s.x / (s.z + 0.03) + cx;
+            const ly = s.y / (s.z + 0.03) + cy;
+            ctx.strokeStyle = `rgba(155,123,255,${a * 0.65})`;
+            ctx.lineWidth = 1.0;
+            ctx.beginPath();
+            ctx.moveTo(lx, ly);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+          }
+          raf = requestAnimationFrame(loop);
+        };
+        raf = requestAnimationFrame(loop);
+        return () => {
+          cancelAnimationFrame(raf);
+          window.removeEventListener("resize", reset);
+        };
+      }
+
+      function demoLightning({ stage, canvas, ctx, resize }) {
+        const rng = makeRng(2024);
+        let w = 0;
+        let h = 0;
+        function reset() {
+          const r = resize();
+          w = r.w;
+          h = r.h;
+        }
+        reset();
+        window.addEventListener("resize", reset);
+
+        function bolt(x0, y0, x1, y1, depth) {
+          if (depth <= 0) {
+            ctx.lineTo(x1, y1);
+            return;
+          }
+          const mx = (x0 + x1) / 2;
+          const my = (y0 + y1) / 2;
+          const dx = x1 - x0;
+          const dy = y1 - y0;
+          const n = (rng() - 0.5) * 0.18;
+          const px = -dy;
+          const py = dx;
+          const lx = mx + px * n;
+          const ly = my + py * n;
+          bolt(x0, y0, lx, ly, depth - 1);
+          bolt(lx, ly, x1, y1, depth - 1);
+        }
+
+        let raf = 0;
+        let last = 0;
+        const loop = () => {
+          const t = now();
+          ctx.clearRect(0, 0, w, h);
+          if (state.reduce) {
+            const x0 = w * 0.35;
+            const y0 = -10;
+            const x1 = w * 0.62;
+            const y1 = h + 10;
+            ctx.globalCompositeOperation = "lighter";
+            ctx.strokeStyle = "rgba(103,209,255,0.45)";
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.moveTo(x0, y0);
+            const steps = 18;
+            for (let i = 1; i <= steps; i++) {
+              const p = i / steps;
+              const x = x0 + (x1 - x0) * p + Math.sin(p * 10) * (w * 0.01);
+              const y = y0 + (y1 - y0) * p + Math.sin(p * 6) * (h * 0.01);
+              ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.strokeStyle = "rgba(255,255,255,0.14)";
+            ctx.lineWidth = 2.4;
+            ctx.stroke();
+            ctx.globalCompositeOperation = "source-over";
+          } else if (t - last > 560) {
+            last = t;
+            ctx.globalCompositeOperation = "lighter";
+            const x0 = rng() * w;
+            const y0 = -10;
+            const x1 = clamp(x0 + (rng() - 0.5) * w * 0.35, 10, w - 10);
+            const y1 = h + 10;
+            ctx.strokeStyle = "rgba(103,209,255,0.55)";
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(x0, y0);
+            bolt(x0, y0, x1, y1, 8);
+            ctx.stroke();
+            ctx.strokeStyle = "rgba(255,255,255,0.18)";
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.moveTo(x0, y0);
+            bolt(x0, y0, x1, y1, 7);
+            ctx.stroke();
+            ctx.globalCompositeOperation = "source-over";
+          }
+          raf = requestAnimationFrame(loop);
+        };
+        raf = requestAnimationFrame(loop);
+        return () => {
+          cancelAnimationFrame(raf);
+          window.removeEventListener("resize", reset);
+        };
+      }
+
+      function demoPixelSnow({ stage, canvas, ctx, resize }) {
+        const rng = makeRng(777);
+        const flakes = [];
+        let w = 0;
+        let h = 0;
+        function reset() {
+          const r = resize();
+          w = r.w;
+          h = r.h;
+          flakes.length = 0;
+          const n = 140;
+          for (let i = 0; i < n; i++) {
+            flakes.push({
+              x: rng() * w,
+              y: rng() * h,
+              s: 1 + Math.floor(rng() * 3),
+              v: 0.35 + rng() * 0.8,
+              a: 0.2 + rng() * 0.3,
+            });
+          }
+        }
+        reset();
+        window.addEventListener("resize", reset);
+
+        let raf = 0;
+        const loop = () => {
+          ctx.clearRect(0, 0, w, h);
+          const move = state.reduce ? 0 : 1;
+          for (const f of flakes) {
+            f.y += f.v * move;
+            f.x += Math.sin((f.y / 45) * 0.9) * 0.25 * move;
+            if (f.y > h + 10) {
+              f.y = -10;
+              f.x = rng() * w;
+            }
+            ctx.fillStyle = `rgba(255,255,255,${f.a})`;
+            ctx.fillRect(f.x, f.y, f.s, f.s);
+          }
+          raf = requestAnimationFrame(loop);
+        };
+        raf = requestAnimationFrame(loop);
+        return () => {
+          cancelAnimationFrame(raf);
+          window.removeEventListener("resize", reset);
+        };
+      }
+
+      function demoPixelBlast({ stage, canvas, ctx, resize }) {
+        const rng = makeRng(919);
+        const pxs = [];
+        let w = 0;
+        let h = 0;
+        function reset() {
+          const r = resize();
+          w = r.w;
+          h = r.h;
+        }
+        reset();
+        window.addEventListener("resize", reset);
+
+        function spawn(x, y) {
+          const n = state.reduce ? 110 : 220;
+          for (let i = 0; i < n; i++) {
+            const a = rng() * Math.PI * 2;
+            const s = 0.8 + rng() * 2.8;
+            pxs.push({
+              x,
+              y,
+              vx: Math.cos(a) * s,
+              vy: Math.sin(a) * s,
+              life: 1,
+              size: 1 + Math.floor(rng() * 3),
+              c: colorMix(0x67d1ff, 0x9b7bff, rng()),
+            });
+          }
+        }
+
+        const onDown = (e) => {
+          const r = stage.getBoundingClientRect();
+          const x = (e.clientX - r.left) * (canvas.width / r.width);
+          const y = (e.clientY - r.top) * (canvas.height / r.height);
+          spawn(x, y);
+        };
+        stage.addEventListener("pointerdown", onDown);
+
+        let raf = 0;
+        const loop = () => {
+          ctx.clearRect(0, 0, w, h);
+          ctx.globalCompositeOperation = "lighter";
+          for (let i = pxs.length - 1; i >= 0; i--) {
+            const p = pxs[i];
+            p.life -= state.reduce ? 0.05 : 0.032;
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vx *= 0.98;
+            p.vy *= 0.98;
+            p.vy += 0.02;
+            if (p.life <= 0) {
+              pxs.splice(i, 1);
+              continue;
+            }
+            const a = clamp(p.life, 0, 1) * 0.75;
+            ctx.fillStyle = rgba(p.c, a);
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+          }
+          ctx.globalCompositeOperation = "source-over";
+          raf = requestAnimationFrame(loop);
+        };
+        raf = requestAnimationFrame(loop);
+
+        return () => {
+          cancelAnimationFrame(raf);
+          window.removeEventListener("resize", reset);
+          stage.removeEventListener("pointerdown", onDown);
+        };
+      }
+
+      function demoPlasma({ stage, canvas, ctx, resize }) {
+        let w = 0;
+        let h = 0;
+        function reset() {
+          const r = resize();
+          w = r.w;
+          h = r.h;
+        }
+        reset();
+        window.addEventListener("resize", reset);
+
+        let raf = 0;
+        const loop = (t) => {
+          const time = (t || 0) * 0.001;
+          const img = ctx.createImageData(w, h);
+          const d = img.data;
+          const step = state.reduce ? 6 : 3;
+          for (let y = 0; y < h; y += step) {
+            for (let x = 0; x < w; x += step) {
+              const v =
+                Math.sin(x * 0.012 + time) +
+                Math.sin(y * 0.014 + time * 1.2) +
+                Math.sin((x + y) * 0.009 + time * 0.7) +
+                Math.sin(
+                  Math.hypot(x - w * 0.5, y - h * 0.5) * 0.022 - time * 1.4,
+                );
+              const n = (v + 4) / 8;
+              const c = colorMix(0x081022, 0x67d1ff, n * 0.55);
+              const c2 = colorMix(
+                c,
+                0x9b7bff,
+                Math.abs(Math.sin(time * 0.7)) * 0.35,
+              );
+              const r = (c2 >> 16) & 255;
+              const g = (c2 >> 8) & 255;
+              const b = c2 & 255;
+              for (let yy = 0; yy < step; yy++) {
+                for (let xx = 0; xx < step; xx++) {
+                  const ix = x + xx;
+                  const iy = y + yy;
+                  if (ix >= w || iy >= h) continue;
+                  const p = (iy * w + ix) * 4;
+                  d[p] = r;
+                  d[p + 1] = g;
+                  d[p + 2] = b;
+                  d[p + 3] = 255;
+                }
+              }
+            }
+          }
+          ctx.putImageData(img, 0, 0);
+          raf = requestAnimationFrame(loop);
+        };
+        raf = requestAnimationFrame(loop);
+        return () => {
+          cancelAnimationFrame(raf);
+          window.removeEventListener("resize", reset);
+        };
+      }
+
+      function demoProgressRing({ stage, canvas, ctx, resize }) {
+        let w = 0;
+        let h = 0;
+        function reset() {
+          const r = resize();
+          w = r.w;
+          h = r.h;
+        }
+        reset();
+        window.addEventListener("resize", reset);
+
+        let raf = 0;
+        const loop = (t) => {
+          const time = (t || 0) * 0.001;
+          ctx.clearRect(0, 0, w, h);
+
+          const cx = w * 0.5;
+          const cy = h * 0.5;
+          const r0 = Math.max(18, Math.min(w, h) * 0.22);
+          const lw = Math.max(5, Math.min(10, r0 * 0.18));
+
+          const p = state.reduce
+            ? 0.72
+            : 0.35 + 0.55 * (0.5 + 0.5 * Math.sin(time * 1.15));
+
+          ctx.lineCap = "round";
+          ctx.lineWidth = lw;
+          ctx.strokeStyle = "rgba(255,255,255,0.12)";
+          ctx.beginPath();
+          ctx.arc(cx, cy, r0, 0, Math.PI * 2);
+          ctx.stroke();
+
+          const g = ctx.createLinearGradient(
+            cx - r0,
+            cy - r0,
+            cx + r0,
+            cy + r0,
+          );
+          g.addColorStop(0, "rgba(103,209,255,0.95)");
+          g.addColorStop(1, "rgba(155,123,255,0.92)");
+          ctx.strokeStyle = g;
+          ctx.beginPath();
+          ctx.arc(cx, cy, r0, -Math.PI * 0.5, -Math.PI * 0.5 + Math.PI * 2 * p);
+          ctx.stroke();
+
+          ctx.fillStyle = "rgba(255,255,255,0.88)";
+          ctx.font = `${Math.max(12, Math.round(r0 * 0.55))}px ui-sans-serif, system-ui`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(`${Math.round(p * 100)}%`, cx, cy);
+
+          raf = requestAnimationFrame(loop);
+        };
+        raf = requestAnimationFrame(loop);
+
+        return () => {
+          cancelAnimationFrame(raf);
+          window.removeEventListener("resize", reset);
+        };
+      }
+
+      function demoSplash({ stage, canvas, ctx, resize }) {
+        const rng = makeRng(31415);
+        let w = 0;
+        let h = 0;
+        const drops = [];
+        function reset() {
+          const r = resize();
+          w = r.w;
+          h = r.h;
+        }
+        reset();
+        window.addEventListener("resize", reset);
+
+        function spawn(x, y) {
+          const n = state.reduce ? 14 : 26;
+          for (let i = 0; i < n; i++) {
+            const a = rng() * Math.PI * 2;
+            const s =
+              (state.reduce ? 1.4 : 2.2) + rng() * (state.reduce ? 2.0 : 3.2);
+            drops.push({
+              x,
+              y,
+              vx: Math.cos(a) * s,
+              vy: Math.sin(a) * s,
+              life: 1,
+              r: 1 + rng() * 3,
+              c: colorMix(0x67d1ff, 0x9b7bff, rng()),
+            });
+          }
+        }
+
+        const onDown = (e) => {
+          const r = stage.getBoundingClientRect();
+          const x = (e.clientX - r.left) * (canvas.width / r.width);
+          const y = (e.clientY - r.top) * (canvas.height / r.height);
+          spawn(x, y);
+        };
+        stage.addEventListener("pointerdown", onDown);
+
+        let raf = 0;
+        const loop = () => {
+          ctx.clearRect(0, 0, w, h);
+          ctx.globalCompositeOperation = "lighter";
+          for (let i = drops.length - 1; i >= 0; i--) {
+            const d = drops[i];
+            d.life -= state.reduce ? 0.06 : 0.042;
+            d.x += d.vx;
+            d.y += d.vy;
+            d.vx *= 0.97;
+            d.vy *= 0.97;
+            d.vy += 0.03;
+            if (d.life <= 0) {
+              drops.splice(i, 1);
+              continue;
+            }
+            const a = clamp(d.life, 0, 1) * 0.75;
+            ctx.fillStyle = rgba(d.c, a);
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.globalCompositeOperation = "source-over";
+          raf = requestAnimationFrame(loop);
+        };
+        raf = requestAnimationFrame(loop);
+
+        return () => {
+          cancelAnimationFrame(raf);
+          window.removeEventListener("resize", reset);
+          stage.removeEventListener("pointerdown", onDown);
+        };
+      }
+
+      const jsSetups = {
+        orb: setupOrb,
+        ripple: setupRipple,
+        ghost: setupGhostCursor,
+        imageTrail: setupImageTrail,
+        magnet: setupMagnet,
+        tilt: setupTilt,
+        toast: setupToast,
+      };
+
+      const canvasFactories = {
+        particles: demoParticles,
+        hyperspeed: demoHyperspeed,
+        lightning: demoLightning,
+        pixelSnow: demoPixelSnow,
+        pixelBlast: demoPixelBlast,
+        plasma: demoPlasma,
+        splash: demoSplash,
+        progressRing: demoProgressRing,
+      };
+
+      const disposers = [];
+      const canvasDemos = new Map();
+
+      function attach() {
+        for (const stage of $$("[data-js]")) {
+          const key = stage.getAttribute("data-js");
+          const setup = jsSetups[key];
+          if (!setup) continue;
+          disposers.push(setup(stage));
+        }
+
+        for (const stage of $$("[data-js] canvas")) {
+          resizeCanvas(stage);
+        }
+
+        for (const stage of $$("[data-js]")) {
+          const key = stage.getAttribute("data-js");
+          if (canvasFactories[key] && $("canvas", stage)) {
+            const demo = makeCanvasDemo(stage, canvasFactories[key]);
+            canvasDemos.set(stage, demo);
+          }
+        }
+
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              const demo = canvasDemos.get(e.target);
+              if (!demo) continue;
+              if (e.isIntersecting) demo.start();
+              else demo.end();
+            }
+          },
+          { root: null, threshold: 0.15 },
+        );
+        for (const [stage] of canvasDemos.entries()) io.observe(stage);
+
+        for (const [stage, demo] of canvasDemos.entries()) {
+          const r = stage.getBoundingClientRect();
+          const inView = r.bottom > 0 && r.top < window.innerHeight;
+          if (inView) demo.start();
+        }
+
+        const onResize = () => {
+          for (const stage of canvasDemos.keys()) {
+            const c = $("canvas", stage);
+            if (c) resizeCanvas(c);
+          }
+        };
+        window.addEventListener("resize", onResize);
+        disposers.push(() => window.removeEventListener("resize", onResize));
+        disposers.push(() => io.disconnect());
+      }
+
+      function setReducedMotion(v) {
+        state.reduce = v;
+        document.body.classList.toggle("reduced", v);
+        document.body.style.setProperty("--reduce", v ? "1" : "0");
+      }
+
+      function applyFilter() {
+        const q = ($("#q").value || "").trim().toLowerCase();
+        const cat = ($("#cat").value || "all").toLowerCase();
+        const visibleCats = Object.create(null);
+        for (const card of $$("section.card[data-name]")) {
+          const name = (card.getAttribute("data-name") || "").toLowerCase();
+          const type = (card.getAttribute("data-type") || "").toLowerCase();
+          const c = (card.getAttribute("data-cat") || "").toLowerCase();
+          const hitText =
+            !q || name.includes(q) || type.includes(q) || c.includes(q);
+          const hitCat = cat === "all" || c === cat;
+          const show = hitText && hitCat;
+          card.classList.toggle("hidden", !show);
+          if (show) visibleCats[c] = true;
+        }
+        for (const head of $$("[data-cat].cat")) {
+          const c = (head.getAttribute("data-cat") || "").toLowerCase();
+          const show = (cat === "all" || c === cat) && !!visibleCats[c];
+          head.classList.toggle("hidden", !show);
+        }
+      }
+
+      $("#q").addEventListener("input", applyFilter);
+      $("#cat").addEventListener("change", applyFilter);
+      $("#reduce").addEventListener("change", (e) =>
+        setReducedMotion(e.target.checked),
+      );
+
+      const prefers =
+        window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)");
+      if (prefers && prefers.matches) {
+        $("#reduce").checked = true;
+        setReducedMotion(true);
+      }
+
+      attach();
+      applyFilter();
+    </script>
+  </body>
+</html>

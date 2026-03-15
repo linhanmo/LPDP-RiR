@@ -1,0 +1,190 @@
+{
+  "meta": {
+    "source": "Open Source Medical Guidelines (NCCN/ESMO/CSCO aligned)",
+    "version": "2025.2.0",
+    "description": "Comprehensive Lung Cancer Treatment & Surgical Path Planning Database with Multimodal Therapy Support",
+    "license": "Open Data Commons Open Database License (ODbL)"
+  },
+  "staging_rules": {
+    "T_stage": [
+      { "max_size": 10, "stage": "T1a" },
+      { "max_size": 20, "stage": "T1b" },
+      { "max_size": 30, "stage": "T1c" },
+      { "max_size": 40, "stage": "T2a" },
+      { "max_size": 50, "stage": "T2b" },
+      { "max_size": 70, "stage": "T3" },
+      { "max_size": 999, "stage": "T4" }
+    ],
+    "stage_grouping": {
+      "T1a": "IA1",
+      "T1b": "IA2",
+      "T1c": "IA3",
+      "T2a": "IB",
+      "T2b": "IIA",
+      "T3": "IIB",
+      "T4": "IIIA"
+    }
+  },
+  "treatment_protocols": {
+    "IA1": {
+      "primary": [
+        {
+          "type": "surgery",
+          "name_en": "Minimally Invasive Surgery (VATS/RATS)",
+          "name_zh": "微创手术 (VATS/RATS)",
+          "procedures": ["Wedge Resection", "Segmentectomy"],
+          "weight": 95,
+          "description_en": "Preferred for peripheral nodules < 2cm with pure GGO. High cure rate.",
+          "description_zh": "对于<2cm的外周纯磨玻璃结节首选。治愈率高。"
+        },
+        {
+          "type": "radiotherapy",
+          "name_en": "SBRT/SABR",
+          "name_zh": "立体定向放疗 (SBRT/SABR)",
+          "weight": 75,
+          "condition": "medically_inoperable",
+          "description_en": "Standard of care for medically inoperable patients or those refusing surgery.",
+          "description_zh": "医学上不可手术患者或拒绝手术患者的标准治疗。"
+        }
+      ]
+    },
+    "IA2": {
+      "primary": [
+        {
+          "type": "surgery",
+          "name_en": "Anatomic Resection (Segmentectomy/Lobectomy)",
+          "name_zh": "解剖性切除 (肺段/肺叶)",
+          "procedures": ["Segmentectomy", "Lobectomy"],
+          "weight": 92,
+          "description_en": "Lobectomy is standard; Segmentectomy if margins > 2cm and N0.",
+          "description_zh": "肺叶切除是标准；若切缘>2cm且淋巴结阴性可由肺段切除。"
+        }
+      ]
+    },
+    "IB": {
+      "primary": [
+        {
+          "type": "surgery_plus",
+          "name_en": "Surgery ± Adjuvant Chemotherapy",
+          "name_zh": "手术 ± 辅助化疗",
+          "procedures": ["Lobectomy"],
+          "weight": 88,
+          "description_en": "Observation for most; Adjuvant chemo for high-risk (VPI, >4cm, high grade).",
+          "description_zh": "多数观察；高危特征（脏层胸膜侵犯, >4cm, 高分级）考虑辅助化疗。"
+        }
+      ]
+    },
+    "IIA": {
+      "primary": [
+        {
+          "type": "multimodal",
+          "name_en": "Surgery + Adjuvant Chemotherapy",
+          "name_zh": "手术 + 辅助化疗",
+          "components": ["Lobectomy", "Cisplatin-based doublet"],
+          "weight": 90,
+          "description_en": "Standard of care. Adjuvant chemotherapy improves survival.",
+          "description_zh": "标准治疗。辅助化疗可提高生存率。"
+        }
+      ]
+    },
+    "IIB": {
+      "primary": [
+        {
+          "type": "multimodal",
+          "name_en": "Multimodal Therapy (Surgery + Chemo)",
+          "name_zh": "多模式治疗 (手术 + 化疗)",
+          "components": ["Lobectomy/Sleeve Resection", "Adjuvant Chemotherapy"],
+          "weight": 90,
+          "description_en": "Sleeve resection preferred over pneumonectomy to preserve lung function.",
+          "description_zh": "袖状切除优于全肺切除以保留肺功能。"
+        }
+      ]
+    },
+    "IIIA": {
+      "primary": [
+        {
+          "type": "neoadjuvant",
+          "name_en": "Neoadjuvant Chemo/Immuno + Surgery",
+          "name_zh": "新辅助化疗/免疫 + 手术",
+          "components": ["Chemo-Immunotherapy", "Surgery", "Adjuvant Therapy"],
+          "weight": 85,
+          "description_en": "For resectable N2 disease. Downstaging improves surgical outcomes.",
+          "description_zh": "用于可切除的N2期疾病。降期治疗可改善手术结果。"
+        },
+        {
+          "type": "chemoradiotherapy",
+          "name_en": "Concurrent Chemoradiotherapy (cCRT)",
+          "name_zh": "同步放化疗 (cCRT)",
+          "components": ["Radiotherapy", "Chemotherapy", "Durvalumab"],
+          "weight": 80,
+          "description_en": "Standard for unresectable Stage III. Followed by immunotherapy consolidation.",
+          "description_zh": "不可切除III期的标准治疗。随后进行免疫巩固治疗。"
+        }
+      ]
+    }
+  },
+  "weight_modifiers": {
+    "age_gt_75": {
+      "surgery": -20,
+      "radiotherapy": 15,
+      "surgery_plus": -25
+    },
+    "comorbidity_copd": {
+      "surgery": -15,
+      "radiotherapy": 10
+    },
+    "performance_status_poor": {
+      "surgery": -30,
+      "multimodal": -20,
+      "radiotherapy": 20
+    }
+  },
+  "surgical_path_planning": {
+    "approaches": [
+      {
+        "id": "vats_uniportal",
+        "name_en": "Uniportal VATS",
+        "name_zh": "单孔胸腔镜手术 (Uniportal VATS)",
+        "invasiveness": "Low",
+        "recovery": "Fast",
+        "indication": "Standard for most resectable cases"
+      },
+      {
+        "id": "rats",
+        "name_en": "Robotic-Assisted Thoracic Surgery (RATS)",
+        "name_zh": "机器人辅助胸腔镜手术 (RATS)",
+        "invasiveness": "Low",
+        "recovery": "Fast",
+        "indication": "Complex anatomic resections or lymph node dissection"
+      },
+      {
+        "id": "thoracotomy",
+        "name_en": "Open Thoracotomy",
+        "name_zh": "开胸手术",
+        "invasiveness": "High",
+        "recovery": "Slow",
+        "indication": "Large tumors, chest wall invasion, or emergency conversion"
+      }
+    ],
+    "resection_types": [
+      {
+        "id": "wedge",
+        "name_en": "Wedge Resection",
+        "name_zh": "楔形切除",
+        "margin_requirement": ">2cm or >tumor size"
+      },
+      {
+        "id": "segment",
+        "name_en": "Segmentectomy",
+        "name_zh": "肺段切除",
+        "indication": "Stage IA, peripheral, limited reserve"
+      },
+      {
+        "id": "lobectomy",
+        "name_en": "Lobectomy",
+        "name_zh": "肺叶切除",
+        "indication": "Standard for >2cm or invasive"
+      }
+    ]
+  }
+}
