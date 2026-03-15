@@ -1,9 +1,11 @@
 __pycache__/
+.vscode/
 *.py[cod]
 *$py.class
 *.so
 .Python
 build/
+build_qt/
 develop-eggs/
 dist/
 downloads/
