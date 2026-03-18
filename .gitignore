@@ -69,6 +69,8 @@ Makefile
 output/
 application/output/
 application_cpp/output/
+application/input/
+application_cpp/input/
 application/data/.session_user
 application/data/data.db
 application_cpp/data/.session_user

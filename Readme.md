@@ -46,7 +46,24 @@
    conda install -c conda-forge qt6-main vtk libzip -y
    ```
 
-- 如果遇到难以解决的问题，请联系开发者获取帮助。
+### 使用 uv 创建 Python 虚拟环境（替代 conda）
+`uv` 只管理 Python 依赖；不会提供 `libzip/Qt/VTK` 的 CMake 包（例如 `libzipConfig.cmake` / `Qt6Config.cmake` / `VTKConfig.cmake`）。如果你用 `uv/.venv` 运行 CMake，遇到 “找不到 libzip/Qt/VTK”，属于正常现象，需要用下文的 vcpkg 或 conda 给 CMake 提供 C++ 依赖。
+
+1. 安装 uv（任选其一）
+```powershell
+pip install -U uv
+```
+
+2. 在项目根目录创建虚拟环境（示例使用 `uv/.venv`）
+```powershell
+cd e:\LPDP-RiR
+uv venv uv\.venv --python 3.11
+```
+
+3. 安装 Python 依赖
+```powershell
+uv pip install -r requirements.txt
+```
 
 ## 2. 数据集下载
 
@@ -61,7 +78,7 @@
 2. 运行 `main.py` 启动程序。
 
 **推荐运行方式**：  
-建议使用 **VS Code** 打开本项目文件夹。确保 Python 解释器已选择为上述创建的 conda 环境 (`e:\lpdp-rir\env`)，打开 `application/main.py` 后选择右上角的"运行 Python 文件"按钮。这能确保环境变量被正确加载。
+建议使用 **VS Code** 打开本项目文件夹。确保 Python 解释器已选择为你使用的 Python 环境（conda 的 `e:\lpdp-rir\env` 或 uv 的 `uv\.venv`），打开 `application/main.py` 后选择右上角的"运行 Python 文件"按钮。这能确保环境变量被正确加载。
 
 **命令行运行方式**：  
 在项目根目录下，打开 Windows Powershell，运行以下命令：
@@ -71,7 +88,20 @@ cd application
 python main.py
 ```
 
+如果你使用的是 uv 虚拟环境（示例 `uv/.venv`），可以这样运行：
+```powershell
+cd e:\LPDP-RiR
+.\uv\.venv\Scripts\activate
+cd application
+python main.py
+```
+
 ### 启动 C++ Qt GUI（推荐）
+#### Python 环境说明（uv vs conda）
+- Python 环境只用于运行 Python 端逻辑（模型推理/3D VTK 查看器）。
+- C++/Qt 编译依赖（libzip/Qt/VTK）必须能被 CMake 发现：要么来自 vcpkg，要么来自 conda 的 `Library` 前缀。
+
+#### conda 编译
 1. 在项目根目录打开 Windows Powershell，并激活 conda 环境：
 ```powershell
 conda activate e:\lpdp-rir\env
@@ -80,7 +110,8 @@ cd e:\lpdp-rir
 
 2. 配置并编译（Release）：
 ```powershell
-cmake -S "e:\LPDP-RiR\application_cpp\qt" -B "e:\LPDP-RiR\application_cpp\qt\build"
+cmake -S "e:\LPDP-RiR\application_cpp\qt" -B "e:\LPDP-RiR\application_cpp\qt\build" `
+  -DCMAKE_PREFIX_PATH="e:\lpdp-rir\env\Library"
 cmake --build "e:\LPDP-RiR\application_cpp\qt\build" --config Release
 ```
 
@@ -90,10 +121,61 @@ cmake --build "e:\LPDP-RiR\application_cpp\qt\build" --config Release
 ```
 
 4. 3D 可视化说明：
-- C++ Qt 界面负责整体 UI；3D 的数据解析与交互由 Python 端（VTK）负责。点击“3D可视化”会自动调用本项目 conda 环境里的 Python 启动 3D 查看器。
+- C++ Qt 界面负责整体 UI；3D 的数据解析与交互由 Python 端（VTK）负责。点击“3D可视化”会自动调用本项目配置的 Python 环境启动 3D 查看器（uv 或 conda 均可）。
 - 若 3D 窗口无法打开，可在已激活的 conda 环境中检查依赖：
 ```powershell
 python -c "import vtk, win32gui; print('ok')"
+```
+
+#### vcpkg 安装 C++ 依赖 + CMake toolchain
+这条路线适合你现在 Python 用 `uv/.venv`，同时又希望 CMake 能稳定找到 libzip/Qt/VTK 的场景。
+
+1) 安装 vcpkg（只需一次）
+```powershell
+cd d:\
+git clone "https://github.com/microsoft/vcpkg"
+cd d:\vcpkg
+.\bootstrap-vcpkg.bat
+```
+
+如果你系统里没有 Git（`git clone` 无法执行），先安装 Git for Windows（安装时选择 “Git from the command line and also from 3rd-party software”，确保加入 PATH），安装后重新打开 PowerShell 验证：
+```powershell
+git --version
+```
+
+也可以不装 Git，直接下载 vcpkg 的 zip（示例）：
+```powershell
+cd d:\
+Invoke-WebRequest -Uri "https://github.com/microsoft/vcpkg/archive/refs/heads/master.zip" -OutFile "vcpkg.zip"
+Expand-Archive -Force "vcpkg.zip" "d:\"
+Rename-Item "d:\vcpkg-master" "d:\vcpkg"
+cd d:\vcpkg
+.\bootstrap-vcpkg.bat
+```
+
+2) 安装 C++ 依赖（至少 libzip；通常还需要 Qt6 + VTK）
+```powershell
+d:\vcpkg\vcpkg.exe install libzip:x64-windows
+d:\vcpkg\vcpkg.exe install qtbase:x64-windows
+d:\vcpkg\vcpkg.exe install vtk:x64-windows
+```
+
+3) 重新配置并编译（重点是加 toolchain）
+```powershell
+Remove-Item -Recurse -Force e:\LPDP-RiR\application_cpp\qt\build
+
+cmake -S "e:\LPDP-RiR\application_cpp\qt" `
+  -B "e:\LPDP-RiR\application_cpp\qt\build" `
+  -G "Visual Studio 17 2022" -A x64 `
+  -DCMAKE_TOOLCHAIN_FILE="d:\vcpkg\scripts\buildsystems\vcpkg.cmake" `
+  -DVCPKG_TARGET_TRIPLET=x64-windows
+
+cmake --build "e:\LPDP-RiR\application_cpp\qt\build" --config Release
+```
+
+4) 运行 C++ 版本主程序
+```powershell
+& "e:\LPDP-RiR\application_cpp\qt\build\Release\LPDP_RiR_QtGui.exe"
 ```
 
 ### 登录信息
@@ -151,3 +233,6 @@ python -c "import vtk, win32gui; print('ok')"
 - **v9.0**: 用纯C++的QT重写了GUI。
 - **v9.1**: 用纯C++实现了部分后端的逻辑，实现一定程度上的性能优化。
 - **v9.2**: 新增了进程与线程管理，修复了一些bug。
+
+
+### 如果遇到难以解决的问题，请联系开发者获取帮助。
