@@ -1,11 +1,13 @@
 #pragma once
 
 #include <QColor>
+#include <QProcessEnvironment>
 #include <QString>
 #include <QVector>
 #include <functional>
 
 class QWidget;
+class QProcess;
 
 struct AppCredentials
 {
@@ -24,6 +26,13 @@ public:
 
   static QString language();
   static void setLanguage(const QString &lang);
+
+  static int performanceThreads();
+  static int performanceInteropThreads();
+  static int performanceWorkers();
+  static QString performancePriority();
+  static QProcessEnvironment pythonProcessEnvironment();
+  static void configurePythonProcess(QProcess *proc);
 
   static int themeIndex();
   static void setThemeIndex(int index);

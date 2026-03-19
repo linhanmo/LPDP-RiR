@@ -481,6 +481,7 @@ void HistoryPage::viewReport()
     if (!m_proc)
     {
       m_proc = new QProcess(this);
+      AppConfig::configurePythonProcess(m_proc);
       connect(m_proc, &QProcess::readyReadStandardError, this, [this]()
               {
                 const QString err = QString::fromUtf8(m_proc->readAllStandardError()).trimmed();
@@ -595,7 +596,8 @@ void HistoryPage::viewReport()
                          2400);
 
     QStringList args;
-    args << script
+    args << QStringLiteral("-u")
+         << script
          << "--report_only"
          << "--input" << inputPath
          << "--output_dir" << pathStr
@@ -603,10 +605,14 @@ void HistoryPage::viewReport()
          << "--prob_threshold" << QString::number(probThreshold, 'f', 2);
     if (!inputDir.trimmed().isEmpty())
       args << "--input_dir" << inputDir;
+    args << QStringLiteral("--threads") << QString::number(AppConfig::performanceThreads());
+    args << QStringLiteral("--interop_threads") << QString::number(AppConfig::performanceInteropThreads());
+    args << QStringLiteral("--workers") << QString::number(AppConfig::performanceWorkers());
 
     m_pendingOutputDir = pathStr;
     m_openReportAfterRun = true;
     m_proc->setWorkingDirectory(appCppDir().absolutePath());
+    m_proc->setProcessEnvironment(AppConfig::pythonProcessEnvironment());
     m_proc->start(AppConfig::pythonExecutablePath(), args);
     return;
   }

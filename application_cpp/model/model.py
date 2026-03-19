@@ -1045,6 +1045,7 @@ def run_analysis_and_save(
     binary_components: int = 2,
     binary_min_size: int = 500,
     prefer_png: bool = True,
+    workers: int = 0,
     progress_callback=None,
 ):
     if vol.ndim == 4 and vol.shape[0] == 1:
@@ -1111,8 +1112,7 @@ def run_analysis_and_save(
 
     all_lesion_data = []
 
-    processed = 0
-    for idx, s in slices_from_volume(vol):
+    def _slice_task(idx: int, s: np.ndarray):
         if window_center is not None and window_width is not None:
             s_u8 = window_to_uint8(s, window_center, window_width)
         elif contrast == "slice":
@@ -1125,92 +1125,160 @@ def run_analysis_and_save(
         else:
             s_u8 = normalize_to_uint8(s)
 
+        out = {
+            "idx": int(idx),
+            "inputs_u8": s_u8,
+            "binary_u8": None,
+            "color_rgb": None,
+            "overlay_rgb": None,
+            "lesion_info": [],
+            "paths": {},
+        }
+
         in_name = input_save_dir / f"slice_{idx:03d}.png"
         save_image(s_u8, in_name, prefer_png=prefer_png)
-        recon_inputs.append(s_u8)
-        result_paths["inputs"].append(str(in_name))
+        out["paths"]["inputs"] = [str(in_name)]
 
-        if pred_vol is not None:
-            mask = np.asarray(pred_vol["mask"][idx]).astype(np.uint8)
-            probs = np.asarray(pred_vol["probs"][:, idx]).astype(np.float32)
-            num_classes = int(probs.shape[0])
+        if pred_vol is None:
+            return out
 
-            y_u8 = (mask.astype(np.float32) / max(num_classes - 1, 1) * 255.0).astype(
-                np.uint8
-            )
-            out_name = output_save_dir / f"proc_{idx:03d}_mask.png"
-            save_image(y_u8, out_name, prefer_png=prefer_png)
-            result_paths["mask"].append(str(out_name))
+        mask = np.asarray(pred_vol["mask"][idx]).astype(np.uint8)
+        probs = np.asarray(pred_vol["probs"][:, idx]).astype(np.float32)
+        num_classes = int(probs.shape[0])
+
+        y_u8 = (mask.astype(np.float32) / max(num_classes - 1, 1) * 255.0).astype(
+            np.uint8
+        )
+        out_name = output_save_dir / f"proc_{idx:03d}_mask.png"
+        save_image(y_u8, out_name, prefer_png=prefer_png)
+        out["paths"]["mask"] = [str(out_name)]
+
+        prob_paths = {}
+        for c in range(num_classes):
+            hm = heatmap_rgb(np.clip(probs[c], 0, 1))
+            out_name = output_save_dir / f"prob_c{c}_{idx:03d}.png"
+            save_image_rgb(hm, out_name)
+            k = f"prob_c{c}"
+            prob_paths[k] = [str(out_name)]
+        out["paths"].update(prob_paths)
+
+        fg_mask = np.isin(mask, list(fg_set)).astype(np.uint8)
+        b = postprocess_binary(
+            fg_mask,
+            keep_components=int(binary_components),
+            min_size=int(binary_min_size),
+        )
+        y_bin = (b > 0).astype(np.uint8) * 255
+        out["binary_u8"] = y_bin
+        out_name = output_save_dir / f"proc_{idx:03d}_binary.png"
+        save_image(y_bin, out_name, prefer_png=prefer_png)
+        out["paths"]["binary"] = [str(out_name)]
+
+        mask_rgb = np.stack([y_u8, y_u8, y_u8], axis=-1)
+        _, lesion_info = detect_and_draw_lesions(
+            mask_rgb, fg_mask, probs, (255, 0, 0), idx, binary_min_size
+        )
+        out["lesion_info"] = lesion_info or []
+
+        rgb = colorize_mask(mask, num_classes)
+        out["color_rgb"] = rgb
+        out_name = output_save_dir / f"proc_{idx:03d}_color.png"
+        save_image_rgb(rgb, out_name)
+        out["paths"]["color"] = [str(out_name)]
+
+        if Image is not None and prefer_png:
+            base = np.stack([s_u8, s_u8, s_u8], axis=-1).astype(np.float32)
+            overlay = base.copy()
+            alpha = float(max(0.0, min(1.0, overlay_alpha)))
 
             for c in range(num_classes):
-                hm = heatmap_rgb(np.clip(probs[c], 0, 1))
-                out_name = output_save_dir / f"prob_c{c}_{idx:03d}.png"
-                save_image_rgb(hm, out_name)
-                k = f"prob_c{c}"
-                if k not in result_paths:
-                    result_paths[k] = []
-                result_paths[k].append(str(out_name))
+                col = np.array(
+                    colorize_mask(np.full_like(mask, c), num_classes)[0, 0],
+                    dtype=np.float32,
+                )
+                sel_c = mask == c
+                if np.any(sel_c):
+                    overlay[sel_c] = (1 - alpha) * base[sel_c] + alpha * col
 
-            fg_mask = np.isin(mask, list(fg_set)).astype(np.uint8)
-            b = postprocess_binary(
-                fg_mask,
-                keep_components=int(binary_components),
-                min_size=int(binary_min_size),
-            )
-            y_bin = (b > 0).astype(np.uint8) * 255
-            out_name = output_save_dir / f"proc_{idx:03d}_binary.png"
-            save_image(y_bin, out_name, prefer_png=prefer_png)
-            recon_binary.append(y_bin)
-            result_paths["binary"].append(str(out_name))
-
-            mask_rgb = np.stack([y_u8, y_u8, y_u8], axis=-1)
-            _, lesion_info = detect_and_draw_lesions(
-                mask_rgb, fg_mask, probs, (255, 0, 0), idx, binary_min_size
-            )
-            all_lesion_data.extend(lesion_info)
-
-            rgb = colorize_mask(mask, num_classes)
-            out_name = output_save_dir / f"proc_{idx:03d}_color.png"
-            save_image_rgb(rgb, out_name)
-            recon_color.append(rgb)
-            result_paths["color"].append(str(out_name))
-
-            if Image is not None and prefer_png:
-                base = np.stack([s_u8, s_u8, s_u8], axis=-1).astype(np.float32)
-                overlay = base.copy()
-                alpha = float(max(0.0, min(1.0, overlay_alpha)))
-
-                for c in range(num_classes):
+            thr = float(max(0.0, min(1.0, prob_threshold)))
+            for c in range(num_classes):
+                sel_prob = probs[c] > thr
+                if np.any(sel_prob):
                     col = np.array(
                         colorize_mask(np.full_like(mask, c), num_classes)[0, 0],
                         dtype=np.float32,
                     )
-                    sel_c = mask == c
-                    if np.any(sel_c):
-                        overlay[sel_c] = (1 - alpha) * base[sel_c] + alpha * col
+                    overlay[sel_prob] = (1 - alpha) * base[sel_prob] + alpha * col
 
-                thr = float(max(0.0, min(1.0, prob_threshold)))
-                for c in range(num_classes):
-                    sel_prob = probs[c] > thr
-                    if np.any(sel_prob):
-                        col = np.array(
-                            colorize_mask(np.full_like(mask, c), num_classes)[0, 0],
-                            dtype=np.float32,
-                        )
-                        overlay[sel_prob] = (1 - alpha) * base[sel_prob] + alpha * col
+            overlay = overlay.clip(0, 255).astype(np.uint8)
+            out["overlay_rgb"] = overlay
+            out_name = output_save_dir / f"proc_{idx:03d}_overlay.png"
+            save_image_rgb(overlay, out_name)
+            out["paths"]["overlay"] = [str(out_name)]
 
-                overlay = overlay.clip(0, 255).astype(np.uint8)
-                out_name = output_save_dir / f"proc_{idx:03d}_overlay.png"
-                save_image_rgb(overlay, out_name)
-                recon_overlay.append(overlay)
-                result_paths["overlay"].append(str(out_name))
+        return out
 
-        processed += 1
-        if callable(progress_callback):
-            try:
-                progress_callback(processed, total_slices, "slices")
-            except Exception:
-                pass
+    slices = list(slices_from_volume(vol))
+    w = int(workers) if workers is not None else 0
+    w = max(0, w)
+
+    results_by_idx = {}
+    processed = 0
+    if w <= 1:
+        for idx, s in slices:
+            r = _slice_task(int(idx), s)
+            results_by_idx[int(idx)] = r
+            processed += 1
+            if callable(progress_callback):
+                try:
+                    progress_callback(processed, total_slices, "slices")
+                except Exception:
+                    pass
+    else:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        with ThreadPoolExecutor(max_workers=w) as ex:
+            futs = [ex.submit(_slice_task, int(idx), s) for idx, s in slices]
+            for fut in as_completed(futs):
+                try:
+                    r = fut.result()
+                    if isinstance(r, dict) and "idx" in r:
+                        results_by_idx[int(r["idx"])] = r
+                except Exception:
+                    import traceback
+
+                    traceback.print_exc()
+                processed += 1
+                if callable(progress_callback):
+                    try:
+                        progress_callback(processed, total_slices, "slices")
+                    except Exception:
+                        pass
+
+    for idx in sorted(results_by_idx.keys()):
+        r = results_by_idx[idx]
+        if not isinstance(r, dict):
+            continue
+        s_u8 = r.get("inputs_u8")
+        if s_u8 is not None:
+            recon_inputs.append(s_u8)
+        for k, v in (r.get("paths") or {}).items():
+            if k not in result_paths:
+                result_paths[k] = []
+            if isinstance(v, list):
+                result_paths[k].extend(v)
+        y_bin = r.get("binary_u8")
+        if y_bin is not None:
+            recon_binary.append(y_bin)
+        rgb = r.get("color_rgb")
+        if rgb is not None:
+            recon_color.append(rgb)
+        overlay = r.get("overlay_rgb")
+        if overlay is not None:
+            recon_overlay.append(overlay)
+        li = r.get("lesion_info")
+        if li:
+            all_lesion_data.extend(li)
 
     if recon_inputs:
         try:
@@ -1286,6 +1354,32 @@ def run_unet_dir(input_dir: Path, output_dir: Path):
     print("PROGRESS_STAGE: done", flush=True)
 
 
+def configure_runtime(threads: int = 0, interop_threads: int = 0):
+    t = int(threads) if threads is not None else 0
+    ti = int(interop_threads) if interop_threads is not None else 0
+    if t > 0:
+        os.environ["OMP_NUM_THREADS"] = str(t)
+        os.environ["MKL_NUM_THREADS"] = str(t)
+        os.environ["OPENBLAS_NUM_THREADS"] = str(t)
+        os.environ["NUMEXPR_NUM_THREADS"] = str(t)
+        os.environ["VECLIB_MAXIMUM_THREADS"] = str(t)
+        os.environ["BLIS_NUM_THREADS"] = str(t)
+    if ti > 0:
+        os.environ["TF_NUM_INTEROP_THREADS"] = str(ti)
+
+    if torch is not None:
+        if t > 0:
+            try:
+                torch.set_num_threads(int(t))
+            except Exception:
+                pass
+        if ti > 0:
+            try:
+                torch.set_num_interop_threads(int(ti))
+            except Exception:
+                pass
+
+
 def main():
     _enable_pytorch_fallback()
     ds = None
@@ -1301,7 +1395,12 @@ def main():
     parser.add_argument("--report_only", action="store_true")
     parser.add_argument("--unet_dir", type=str, default=None)
     parser.add_argument("--unet_out", type=str, default=None)
+    parser.add_argument("--threads", type=int, default=0)
+    parser.add_argument("--interop_threads", type=int, default=0)
+    parser.add_argument("--workers", type=int, default=0)
     args = parser.parse_args()
+
+    configure_runtime(args.threads, args.interop_threads)
 
     if not args.input and not args.unet_dir:
         parser.error("必须指定 --input 或 --unet_dir")
@@ -1507,6 +1606,7 @@ def main():
         int(binary_components),
         int(binary_min_size),
         prefer_png=True,
+        workers=int(args.workers) if args.workers is not None else 0,
         progress_callback=_progress_printer,
     )
 

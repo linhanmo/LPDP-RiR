@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QColor>
+#include <QElapsedTimer>
 #include <QString>
 #include <QWidget>
 
@@ -83,4 +84,7 @@ private:
   bool m_typingPopupDone = false;
   bool m_reportReady = false;
   QString m_reportHtml;
+
+  QElapsedTimer m_progressUiClock;
+  qint64 m_lastProgressUiMs = 0;
 };

@@ -16,9 +16,12 @@
 #include <QJsonObject>
 #include <QPainter>
 #include <QPainterPath>
+#include <QProcess>
+#include <QProcessEnvironment>
 #include <QPropertyAnimation>
 #include <QRandomGenerator>
 #include <QScreen>
+#include <QThread>
 #include <QPushButton>
 #include <QSqlDatabase>
 #include <QSqlError>
@@ -29,6 +32,10 @@
 
 #include "MagneticButtonStage.h"
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+
 namespace
 {
   QJsonObject defaultConfig()
@@ -37,6 +44,10 @@ namespace
     o.insert("language", "CN");
     o.insert("theme_index", 1);
     o.insert("remember_me", false);
+    o.insert("perf_threads", 0);
+    o.insert("perf_interop_threads", 0);
+    o.insert("perf_workers", 0);
+    o.insert("perf_priority", "normal");
     return o;
   }
 
@@ -59,6 +70,14 @@ namespace
       o.insert("theme_index", 1);
     if (!o.contains("remember_me"))
       o.insert("remember_me", false);
+    if (!o.contains("perf_threads"))
+      o.insert("perf_threads", 0);
+    if (!o.contains("perf_interop_threads"))
+      o.insert("perf_interop_threads", 0);
+    if (!o.contains("perf_workers"))
+      o.insert("perf_workers", 0);
+    if (!o.contains("perf_priority"))
+      o.insert("perf_priority", "normal");
     return o;
   }
 
@@ -242,6 +261,31 @@ namespace
         QColor("#0B1220"),
     };
   }
+
+  int clampInt(int v, int lo, int hi)
+  {
+    if (v < lo)
+      return lo;
+    if (v > hi)
+      return hi;
+    return v;
+  }
+
+#ifdef Q_OS_WIN
+  DWORD priorityClassFromString(const QString &s)
+  {
+    const QString k = s.trimmed().toLower();
+    if (k == "idle")
+      return IDLE_PRIORITY_CLASS;
+    if (k == "below_normal" || k == "belownormal")
+      return BELOW_NORMAL_PRIORITY_CLASS;
+    if (k == "above_normal" || k == "abovenormal")
+      return ABOVE_NORMAL_PRIORITY_CLASS;
+    if (k == "high")
+      return HIGH_PRIORITY_CLASS;
+    return NORMAL_PRIORITY_CLASS;
+  }
+#endif
 }
 
 QString AppConfig::configFilePath()
@@ -291,6 +335,85 @@ void AppConfig::setLanguage(const QString &lang)
   QJsonObject cfg = loadConfig(configFilePath());
   cfg.insert("language", (lang == "EN") ? "EN" : "CN");
   saveConfig(configFilePath(), cfg);
+}
+
+int AppConfig::performanceThreads()
+{
+  const auto cfg = loadConfig(configFilePath());
+  const int configured = cfg.value("perf_threads").toInt(0);
+  const int ideal = qMax(1, QThread::idealThreadCount());
+  return clampInt(configured > 0 ? configured : ideal, 1, 256);
+}
+
+int AppConfig::performanceInteropThreads()
+{
+  const auto cfg = loadConfig(configFilePath());
+  const int configured = cfg.value("perf_interop_threads").toInt(0);
+  const int threads = performanceThreads();
+  const int fallback = qMax(1, threads / 2);
+  return clampInt(configured > 0 ? configured : fallback, 1, 256);
+}
+
+int AppConfig::performanceWorkers()
+{
+  const auto cfg = loadConfig(configFilePath());
+  const int configured = cfg.value("perf_workers").toInt(0);
+  const int threads = performanceThreads();
+  const int fallback = qMax(1, qMin(8, threads));
+  return clampInt(configured > 0 ? configured : fallback, 1, 64);
+}
+
+QString AppConfig::performancePriority()
+{
+  const auto cfg = loadConfig(configFilePath());
+  const QString p = cfg.value("perf_priority").toString("normal").trimmed();
+  return p.isEmpty() ? QStringLiteral("normal") : p;
+}
+
+QProcessEnvironment AppConfig::pythonProcessEnvironment()
+{
+  QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+  const int threads = performanceThreads();
+  const int interop = performanceInteropThreads();
+
+  const QString t = QString::number(threads);
+  const QString ti = QString::number(interop);
+  env.insert(QStringLiteral("OMP_NUM_THREADS"), t);
+  env.insert(QStringLiteral("MKL_NUM_THREADS"), t);
+  env.insert(QStringLiteral("OPENBLAS_NUM_THREADS"), t);
+  env.insert(QStringLiteral("NUMEXPR_NUM_THREADS"), t);
+  env.insert(QStringLiteral("VECLIB_MAXIMUM_THREADS"), t);
+  env.insert(QStringLiteral("BLIS_NUM_THREADS"), t);
+  env.insert(QStringLiteral("TF_NUM_INTRAOP_THREADS"), t);
+  env.insert(QStringLiteral("TF_NUM_INTEROP_THREADS"), ti);
+
+  env.insert(QStringLiteral("PYTHONUNBUFFERED"), QStringLiteral("1"));
+  return env;
+}
+
+void AppConfig::configurePythonProcess(QProcess *proc)
+{
+  if (!proc)
+    return;
+  proc->setProcessEnvironment(pythonProcessEnvironment());
+
+  QObject::connect(proc, &QProcess::started, proc, [proc]()
+                   {
+#ifdef Q_OS_WIN
+    const qint64 pid64 = proc->processId();
+    if (pid64 <= 0)
+      return;
+    const DWORD pid = static_cast<DWORD>(pid64);
+    HANDLE h = OpenProcess(PROCESS_SET_INFORMATION | PROCESS_QUERY_INFORMATION, FALSE, pid);
+    if (!h)
+      return;
+    const DWORD cls = priorityClassFromString(AppConfig::performancePriority());
+    SetPriorityClass(h, cls);
+    CloseHandle(h);
+#else
+    Q_UNUSED(proc);
+#endif
+                   });
 }
 
 int AppConfig::themeIndex()

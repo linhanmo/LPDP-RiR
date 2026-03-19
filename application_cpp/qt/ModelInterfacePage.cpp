@@ -1047,6 +1047,7 @@ bool ModelInterfacePage::startModelProcess(const QStringList &args)
   if (!m_proc)
   {
     m_proc = new QProcess(this);
+    AppConfig::configurePythonProcess(m_proc);
     connect(m_proc, &QProcess::readyReadStandardOutput, this, [this]()
             {
       const QString out = QString::fromUtf8(m_proc->readAllStandardOutput());
@@ -1065,17 +1066,35 @@ bool ModelInterfacePage::startModelProcess(const QStringList &args)
             const int tot = parts[1].trimmed().toInt();
             if (tot > 0) {
               m_totalSlices = tot;
-              if (m_resultDesc)
-                m_resultDesc->setPlainText(pick(m_lang, "开始分析...", "Starting analysis...") + QString(" %1/%2").arg(cur).arg(tot));
-              updatePreviewPlaceholders();
-              updateProgressPopup(cur, tot, QString());
+              m_progressCur = cur;
+              m_progressTot = tot;
+              if (!m_progressUiClock.isValid())
+                m_progressUiClock.start();
+              const qint64 now = m_progressUiClock.elapsed();
+              const bool shouldUpdate = (now - m_lastProgressUiMs) >= 80 || cur >= tot;
+              if (shouldUpdate)
+              {
+                m_lastProgressUiMs = now;
+                if (m_resultDesc)
+                  m_resultDesc->setPlainText(pick(m_lang, "开始分析...", "Starting analysis...") + QString(" %1/%2").arg(cur).arg(tot));
+                updatePreviewPlaceholders();
+                updateProgressPopup(cur, tot, QString());
+              }
             }
           }
         } else if (line.startsWith("PROGRESS_STAGE:")) {
           const QString stage = line.mid(QString("PROGRESS_STAGE:").size()).trimmed();
-          if (!stage.isEmpty() && m_resultDesc)
-            m_resultDesc->setPlainText(pick(m_lang, "阶段：", "Stage: ") + stage);
-          updateProgressPopup(m_progressCur, m_progressTot, stage);
+          if (!m_progressUiClock.isValid())
+            m_progressUiClock.start();
+          const qint64 now = m_progressUiClock.elapsed();
+          const bool shouldUpdate = (now - m_lastProgressUiMs) >= 80 || stage == QStringLiteral("done");
+          if (shouldUpdate)
+          {
+            m_lastProgressUiMs = now;
+            if (!stage.isEmpty() && m_resultDesc)
+              m_resultDesc->setPlainText(pick(m_lang, "阶段：", "Stage: ") + stage);
+            updateProgressPopup(m_progressCur, m_progressTot, stage);
+          }
         }
       } });
 
@@ -1138,17 +1157,24 @@ bool ModelInterfacePage::startModelProcess(const QStringList &args)
   m_totalSlices = 0;
   m_progressCur = 0;
   m_progressTot = 0;
+  m_lastProgressUiMs = 0;
+  m_progressUiClock.invalidate();
   const QDir wd = appCppDir();
   m_proc->setWorkingDirectory(wd.absolutePath());
 
   QStringList fullArgs;
+  fullArgs << QStringLiteral("-u");
   fullArgs << script;
   fullArgs << args;
+  fullArgs << QStringLiteral("--threads") << QString::number(AppConfig::performanceThreads());
+  fullArgs << QStringLiteral("--interop_threads") << QString::number(AppConfig::performanceInteropThreads());
+  fullArgs << QStringLiteral("--workers") << QString::number(AppConfig::performanceWorkers());
 
   m_runningActionKey = actionKey;
   if (actionKey == QStringLiteral("analyze") || actionKey == QStringLiteral("unet"))
     showProgressPopup(actionKey);
 
+  m_proc->setProcessEnvironment(AppConfig::pythonProcessEnvironment());
   m_proc->start(AppConfig::pythonExecutablePath(), fullArgs);
 
   applyUiState();
