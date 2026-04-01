@@ -317,6 +317,14 @@ QString AppConfig::sessionFilePath()
 
 QString AppConfig::pythonExecutablePath()
 {
+  QDir appDir(QCoreApplication::applicationDirPath());
+  const QString localPy = appDir.filePath("python/python.exe");
+  if (QFileInfo::exists(localPy))
+    return localPy;
+  const QString localPy2 = appDir.filePath("python.exe");
+  if (QFileInfo::exists(localPy2))
+    return localPy2;
+
   const QString p = findRepoFile("env/python.exe");
   if (!p.isEmpty() && QFileInfo::exists(p))
     return p;
@@ -395,7 +403,30 @@ void AppConfig::configurePythonProcess(QProcess *proc)
 {
   if (!proc)
     return;
-  proc->setProcessEnvironment(pythonProcessEnvironment());
+
+  QProcessEnvironment env = pythonProcessEnvironment();
+
+#ifdef Q_OS_WIN
+  const QDir appDir(QCoreApplication::applicationDirPath());
+  const QString pythonDir = appDir.filePath(QStringLiteral("python"));
+  const QString bundledPythonExe = QDir(pythonDir).filePath(QStringLiteral("python.exe"));
+  if (QFileInfo::exists(bundledPythonExe))
+    env.insert(QStringLiteral("PYTHONHOME"), QDir::toNativeSeparators(pythonDir));
+
+  const QString pathKey = env.contains(QStringLiteral("Path")) ? QStringLiteral("Path")
+                                                               : QStringLiteral("PATH");
+  const QString oldPath = env.value(pathKey);
+
+  QStringList prepend;
+  prepend << QDir::toNativeSeparators(appDir.absolutePath());
+  prepend << QDir::toNativeSeparators(pythonDir);
+  prepend << QDir::toNativeSeparators(QDir(pythonDir).filePath(QStringLiteral("DLLs")));
+  prepend << QDir::toNativeSeparators(QDir(pythonDir).filePath(QStringLiteral("Library/bin")));
+
+  env.insert(pathKey, prepend.join(';') + QStringLiteral(";") + oldPath);
+#endif
+
+  proc->setProcessEnvironment(env);
 
   QObject::connect(proc, &QProcess::started, proc, [proc]()
                    {

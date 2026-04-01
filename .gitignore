@@ -5,6 +5,7 @@ __pycache__/
 *.so
 .Python
 build/
+build_standalone_msvc/
 build_qt/
 develop-eggs/
 dist/
@@ -26,6 +27,8 @@ env/
 venv/
 .env
 .venv
+application_cpp/qt/build_no_venv*/
+application_cpp/qt/build_standalone_msvc/
 *.npy
 *.npz
 *.nii

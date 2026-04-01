@@ -9,7 +9,11 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 get_filename_component(_repo_root "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
-list(APPEND CMAKE_PREFIX_PATH "${_repo_root}/env/Library")
+
+option(LPDP_USE_BUNDLED_CONDA_DEPS "Use bundled env/Library for dependencies" ON)
+if(LPDP_USE_BUNDLED_CONDA_DEPS AND EXISTS "${_repo_root}/env/Library")
+  list(APPEND CMAKE_PREFIX_PATH "${_repo_root}/env/Library")
+endif()
 
 find_package(Qt6 COMPONENTS Widgets Gui Core Sql OpenGLWidgets QUIET)
 if(Qt6_FOUND)
@@ -22,7 +26,34 @@ else()
   set(QT_LIBS Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Sql)
 endif()
 
-find_package(libzip CONFIG REQUIRED)
+find_package(libzip CONFIG QUIET)
+if(NOT libzip_FOUND)
+  find_path(LIBZIP_INCLUDE_DIR zip.h
+    HINTS
+      "${_repo_root}/env/Library/include"
+      "${_repo_root}/env/include"
+  )
+  find_library(LIBZIP_LIBRARY NAMES zip libzip
+    HINTS
+      "${_repo_root}/env/Library/lib"
+      "${_repo_root}/env/lib"
+  )
+  find_file(LIBZIP_DLL NAMES zip.dll
+    HINTS
+      "${_repo_root}/env/Library/bin"
+      "${_repo_root}/env/bin"
+  )
+  if(LIBZIP_INCLUDE_DIR AND LIBZIP_LIBRARY)
+    add_library(libzip::zip SHARED IMPORTED)
+    set_target_properties(libzip::zip PROPERTIES
+      IMPORTED_IMPLIB "${LIBZIP_LIBRARY}"
+      IMPORTED_LOCATION "${LIBZIP_DLL}"
+      INTERFACE_INCLUDE_DIRECTORIES "${LIBZIP_INCLUDE_DIR}"
+    )
+  else()
+    message(FATAL_ERROR "libzip not found. Provide libzip_DIR or enable LPDP_USE_BUNDLED_CONDA_DEPS.")
+  endif()
+endif()
 
 find_package(VTK CONFIG QUIET COMPONENTS
   IOImage
@@ -39,6 +70,31 @@ if(NOT VTK_FOUND)
     InteractionWidgets
     GUISupportQt
   )
+endif()
+
+if(NOT VTK_FOUND)
+  set(_vtk_inc_dir "")
+  if(EXISTS "${_repo_root}/env/Library/include/vtk-9.3")
+    set(_vtk_inc_dir "${_repo_root}/env/Library/include/vtk-9.3")
+  elseif(EXISTS "${_repo_root}/env/Library/include/vtk-9.2")
+    set(_vtk_inc_dir "${_repo_root}/env/Library/include/vtk-9.2")
+  endif()
+
+  if(_vtk_inc_dir)
+    file(GLOB _vtk_all_libs "${_repo_root}/env/Library/lib/vtk*.lib")
+    foreach(_t IOImage FiltersModeling InteractionStyle InteractionWidgets GUISupportQt)
+      if(NOT TARGET "VTK::${_t}")
+        add_library("VTK::${_t}" INTERFACE IMPORTED)
+        set_target_properties("VTK::${_t}" PROPERTIES
+          INTERFACE_INCLUDE_DIRECTORIES "${_vtk_inc_dir}"
+          INTERFACE_LINK_LIBRARIES "${_vtk_all_libs}"
+        )
+      endif()
+    endforeach()
+    set(VTK_FOUND TRUE)
+  else()
+    message(FATAL_ERROR "VTK not found. Provide VTK_DIR/vtk_DIR or enable LPDP_USE_BUNDLED_CONDA_DEPS.")
+  endif()
 endif()
 
 add_executable(LPDP_RiR_QtGui
@@ -83,6 +139,36 @@ if(COMMAND vtk_module_autoinit)
 endif()
 
 option(ENABLE_WINDEPLOYQT "Run windeployqt after build" OFF)
+option(LPDP_STANDALONE_RUNTIME "Copy runtime dependencies next to exe to run without conda/env" OFF)
+
+if(WIN32 AND LPDP_STANDALONE_RUNTIME)
+  set(_lpdp_qt_plugins_src "")
+  if(EXISTS "${_repo_root}/env/Library/lib/qt6/plugins")
+    set(_lpdp_qt_plugins_src "${_repo_root}/env/Library/lib/qt6/plugins")
+  elseif(EXISTS "${_repo_root}/env/Library/plugins")
+    set(_lpdp_qt_plugins_src "${_repo_root}/env/Library/plugins")
+  endif()
+
+  add_custom_command(
+    TARGET LPDP_RiR_QtGui
+    POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+            "${_repo_root}/env/Library/bin"
+            "$<TARGET_FILE_DIR:LPDP_RiR_QtGui>"
+    VERBATIM
+  )
+
+  if(_lpdp_qt_plugins_src)
+    add_custom_command(
+      TARGET LPDP_RiR_QtGui
+      POST_BUILD
+      COMMAND "${CMAKE_COMMAND}" -E copy_directory
+              "${_lpdp_qt_plugins_src}"
+              "$<TARGET_FILE_DIR:LPDP_RiR_QtGui>/plugins"
+      VERBATIM
+    )
+  endif()
+endif()
 
 if(WIN32 AND ENABLE_WINDEPLOYQT)
   set(_qt_bin_dir "")
